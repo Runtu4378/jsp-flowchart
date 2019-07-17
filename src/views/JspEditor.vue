@@ -35,5 +35,9 @@ export default {
     top: 5%;
     border: 1px solid #ccc;
     border-radius: 3px;
+    .split
+      height: 1px;
+      margin: 4px;
+      background: #ccc;
 
 </style>
