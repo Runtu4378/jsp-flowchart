@@ -1,4 +1,6 @@
-# vue-bpmn
+# jsp-flowchart
+
+> 使用 jsplumb 实现的流程图编辑器
 
 ## Project setup
 ```
