@@ -38,8 +38,17 @@ export default {
 <style lang="sass">
 .cm-flowchart
   position: relative;
+  width: 100%;
+  height: 100%;
 
   &-canvas
-   position: relative;
+    position: relative;
+    width: 100%;
+    height: 100%;
 
+  .flowchart-object
+    position: absolute;
+    &.flowchart-start
+      border: 1px solid #ccc;
+      border-radius: 3px;
 </style>

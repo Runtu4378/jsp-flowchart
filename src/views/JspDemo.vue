@@ -22,7 +22,6 @@ export default {
       chartData: {
         nodes: [
           {
-            id: 'start',
             type: 'Start',
             text: 'start node'
           }
@@ -134,7 +133,7 @@ export default {
 
 <style>
 .wrapper {
-  height: 100%;
+  height: 500px;
   width: 100%;
 }
 </style>

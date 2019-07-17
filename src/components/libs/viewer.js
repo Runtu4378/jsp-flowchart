@@ -6,8 +6,10 @@ import './Math.uuid'
 
 const nodesMap = new Map([
   ['Start', {
+    draggable: true,
     render: (props) => {
       const {
+        id,
         left = 0,
         top = 0,
         w = 400,
@@ -15,7 +17,7 @@ const nodesMap = new Map([
         text = 'start'
       } = props
       return `
-      <div style="left:${left}px;top:${top}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-start">
+      <div id="${id}" style="left:${left}px;top:${top}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-start">
         <div style="position:relative">
           <svg:svg width="${w}" height="${h}">
             <svg:ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}"></svg:ellipse>
@@ -150,6 +152,9 @@ export default class JspViewer {
   // 节点类型表
   nodesMap = nodesMap
 
+  /** 节点表 */
+  nodes = new Map()
+
   constructor (id, options, data) {
     this.id = id
     // 初始化实例
@@ -192,10 +197,24 @@ export default class JspViewer {
     if (!this.nodesMap.has(type)) {
       throw new Error(`unknown type of node: ${type}`)
     } else {
+      let realNode = node
+      // 初始化id
+      if (!node.id) {
+        const uuid = Math.uuid(16)
+        realNode = { id: uuid, ...node }
+        this.nodes.set(uuid, realNode)
+      } else {
+        this.nodes.set(node.id, node)
+      }
       const nodeDetail = this.nodesMap.get(type)
-      const renderTxt = nodeDetail.render(node)
+      const renderTxt = nodeDetail.render(realNode)
       const container = this.getDom(this.id)
+      // 挂载实际dom
       container.append(renderTxt)
+      // 设置拖拽
+      if (nodeDetail.draggable) {
+        this.setDraggable(realNode.id)
+      }
     }
   }
 
@@ -207,6 +226,41 @@ export default class JspViewer {
   /** 连接标签点击事件 */
   handleLabelClick () {
     console.log('label click')
+  }
+
+  // jsp函数
+  /** 设置位置 */
+  setPosition = function (nodeid, x, y) {
+    var node = this.getDom(nodeid)
+    node.css('left', x)
+    node.css('top', y)
+    this.updatePosition(nodeid, x, y)
+  }
+  updatePosition = function (key, vx, vy) {
+    var result = this.nodes.get(key)
+    result.x = vx
+    result.y = vy
+    this.nodes.set(key, result)
+    return result
+  }
+  /** 设置拖拽 */
+  setDraggable (selector) {
+    var option = {
+      drag: function () {
+        console.log('....draging....')
+      },
+      stop: function (event, ui) {
+        console.log('....stop....')
+        var id = event.el.id
+        var x = event.pos[0]
+        var y = event.pos[1]
+        this.setPosition(id, x, y)
+        // var node = helper.container.getNode(id)
+        // //todo update node here
+      },
+      containment: 'parent'
+    }
+    this.jsp.draggable(this.getDom(selector), option)
   }
 
   // 工具函数
