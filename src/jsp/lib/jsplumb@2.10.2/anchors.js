@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * This file contains the code for creating and manipulating anchors.
  *

@@ -1,5 +1,6 @@
-;
-(function () {
+/* eslint-disable */
+
+;(function () {
 
     "use strict";
 

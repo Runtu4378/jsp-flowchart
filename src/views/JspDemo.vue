@@ -42,12 +42,7 @@ export default {
               node: 'task_001',
               endpoint: 'task_001_target_TopCenter'
             }
-          },
-          // {
-          //   id: 2,
-          //   source: 'task_001',
-          //   target: 'start_001'
-          // }
+          }
         ]
       }
     }

@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /**
  * Biltong v0.4.0
  *

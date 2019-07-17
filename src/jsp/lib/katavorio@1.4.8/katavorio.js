@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /**
  drag/drop functionality for use with jsPlumb but with
  no knowledge of jsPlumb. supports multiple scopes (separated by whitespace), dragging

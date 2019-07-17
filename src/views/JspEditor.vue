@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Editor from '../components/libs/editor'
+import Editor from '../jsp/editor'
 
 export default {
   data () {

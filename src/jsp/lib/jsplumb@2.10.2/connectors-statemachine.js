@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * This file contains the state machine connectors, which extend AbstractBezierConnector.
  *

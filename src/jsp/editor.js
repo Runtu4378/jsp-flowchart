@@ -1,6 +1,6 @@
-import './jquery/jquery.min.js'
+import './lib/jquery/jquery.min.js'
 /* globals $ */
-import './jquery/jquery-ui.min.js'
+import './lib/jquery/jquery-ui.min.js'
 
 import Viewer from './viewer.js'
 import nodeMeta from './nodeMeta'

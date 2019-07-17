@@ -1,8 +1,8 @@
-import '../../extra/jsplumb-2.10.2/dist/js/jsplumb.min.js'
+import './jsp.lib.js'
 /* globals jsPlumb */
-import './jquery/jquery.min.js'
+import './lib/jquery/jquery.min.js'
 /* globals $ */
-import './Math.uuid'
+import './lib/Math.uuid.js'
 
 import nodeMeta from './nodeMeta'
 import './viewer.scss'
@@ -146,12 +146,12 @@ export default class JspViewer {
 
   /** 初始化实例 */
   async initInstance () {
-    const that = this
     await new Promise(resolve => {
-      jsPlumb.ready(function (params) {
-        that.jsp = jsPlumb.getInstance(that.defaultOption)
+      jsPlumb.ready((params) => {
+        this.jsp = jsPlumb.getInstance(this.defaultOption)
+        // console.log(that)
+        resolve()
       })
-      resolve()
     })
   }
 
@@ -282,7 +282,7 @@ export default class JspViewer {
       },
       containment: 'parent'
     }
-    this.jsp.draggable(this.getDom(selector), option)
+    that.jsp.draggable(that.getDom(selector), option)
   }
 
   // 工具函数

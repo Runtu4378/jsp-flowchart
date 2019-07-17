@@ -5,7 +5,7 @@
 </template>
 
 <script>
-import Viewer from './libs/viewer'
+import Viewer from '../jsp/viewer'
 
 let idx = 0
 

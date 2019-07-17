@@ -2,10 +2,8 @@
   <div id="app">
     <div id="nav">
       <router-link to="/">Home</router-link> |
-      <router-link to="/about">About</router-link> |
-      <router-link to="/cmDemo">CmDemo</router-link> |
-      <router-link to="/jspDemo">JspDemo</router-link> |
-      <router-link to="/jspEditor">JspEditor</router-link>
+      <router-link to="/jspDemo">viewer</router-link> |
+      <router-link to="/jspEditor">editor</router-link>
     </div>
     <router-view/>
   </div>

@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * This file contains the default Connectors, Endpoint and Overlay definitions.
  *

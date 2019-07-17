@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * This file contains the 'flowchart' connectors, consisting of vertical and horizontal line segments.
  *

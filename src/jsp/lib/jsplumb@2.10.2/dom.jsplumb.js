@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * This file contains code used when jsPlumb is being rendered in a DOM.
  *

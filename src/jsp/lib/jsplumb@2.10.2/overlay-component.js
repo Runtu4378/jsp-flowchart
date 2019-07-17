@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * 2010 - 2018 jsPlumb (hello@jsplumbtoolkit.com)
  *

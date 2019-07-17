@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 ;(function() {
 
     var DEFAULT_OPTIONS = {

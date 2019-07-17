@@ -1,3 +1,5 @@
+/* eslint-disable */
+
 /*
  * This file contains utility functions that run in browsers only.
  *
