@@ -37,6 +37,7 @@ export default class Editor {
 
   /** 挂载节点生成事件 */
   initDragEvent () {
+    const that = this
     $('.node-item.darg-data').draggable({
       revert: 'invalid',
       helper: 'clone',
@@ -48,9 +49,16 @@ export default class Editor {
     $(`#${this.id}`).droppable({
       scope: 'park',
       drop: function (event, ui) {
-        debugger
+        // debugger
         const type = ui.draggable[0].attributes['node-type'].nodeValue
         console.log(type)
+        const left = ui.position.left
+        const top = ui.position.top
+        that.viewer.mountNode({
+          type,
+          x: left,
+          y: top
+        })
       }
     })
   }

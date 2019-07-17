@@ -5,6 +5,7 @@ import './jquery/jquery.min.js'
 import './Math.uuid'
 
 import nodeMeta from './nodeMeta'
+import './viewer.scss'
 
 export default class JspViewer {
   /** 容器id */
@@ -220,6 +221,10 @@ export default class JspViewer {
         }
       )
     }
+  }
+  /** 增加节点 */
+  appendNode (node) {
+    //
   }
 
   /** 生成连接 */
