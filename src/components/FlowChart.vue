@@ -1,23 +1,45 @@
 <template>
-  <div>
-    <div ref="canvas"></div>
+  <div class="cm-flowchart">
+    <div ref="canvas" class="cm-flowchart-canvas"></div>
   </div>
 </template>
 
 <script>
+import Viewer from './libs/viewer'
+
 let idx = 0
 
 export default {
+  props: {
+    chartData: {
+      type: Object
+    }
+  },
   data () {
-    return {}
+    return {
+      id: null,
+      jsp: null
+    }
   },
   mounted () {
     this.initId()
+    this.jsp = new Viewer(this.id, {}, this.chartData)
   },
   methods: {
     initId () {
-      this.$refs['canvas'].setAttribute('id', `cm_flowchart_${idx}`)
+      const id = `cm_flowchart_${idx}`
+      this.id = id
+      this.$refs['canvas'].setAttribute('id', id)
     }
   }
 }
 </script>
+
+<style lang="sass">
+.cm-flowchart
+  position: relative;
+
+  &-canvas
+   position: relative;
+
+</style>

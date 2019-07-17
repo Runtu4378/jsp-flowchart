@@ -1,10 +1,9 @@
 <template>
-  <div>
+  <div class="wrapper">
     <h1>jspDemo</h1>
-    <!-- <div id="container">
-      <div class="window jtk-node" id="flowchartWindow4"><strong>4</strong><br/><br/></div>
-    </div> -->
-    <FlowChart />
+    <FlowChart
+      :chartData="chartData"
+    />
   </div>
 </template>
 
@@ -19,7 +18,17 @@ export default {
     FlowChart
   },
   data () {
-    return {}
+    return {
+      chartData: {
+        nodes: [
+          {
+            id: 'start',
+            type: 'Start',
+            text: 'start node'
+          }
+        ]
+      }
+    }
   },
   mounted () {
     // this.showGraph()
@@ -122,3 +131,10 @@ export default {
   }
 }
 </script>
+
+<style>
+.wrapper {
+  height: 100%;
+  width: 100%;
+}
+</style>
