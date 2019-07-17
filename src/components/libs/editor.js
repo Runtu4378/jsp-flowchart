@@ -24,14 +24,14 @@ export default class Editor {
   /** 挂载工具栏 */
   mountToolbar () {
     const container = $(`#${this.id}`)
-    let renderStr = ''
+    const renderStr = []
     for (let key of nodeMeta.keys()) {
-      renderStr += `
+      renderStr.push(`
       <div class="node-item darg-data" node-type="${key}">${key}</div>
-      `
+      `)
     }
     container.append(`
-    <div class="toolbar">${renderStr}</div>
+    <div class="toolbar">${renderStr.join('<div class="split"></div>')}</div>
     `)
   }
 

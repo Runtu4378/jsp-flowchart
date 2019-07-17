@@ -222,10 +222,6 @@ export default class JspViewer {
       )
     }
   }
-  /** 增加节点 */
-  appendNode (node) {
-    //
-  }
 
   /** 生成连接 */
   mountConnect (list) {
