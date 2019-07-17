@@ -4,62 +4,7 @@ import './jquery/jquery.min.js'
 /* globals $ */
 import './Math.uuid'
 
-const nodesMap = new Map([
-  ['Start', {
-    draggable: true,
-    endpoint: [
-      'TopCenter',
-      'BottomCenter',
-      'LeftMiddle',
-      'RightMiddle'
-    ],
-    render: ({
-      id,
-      x = 0, y = 0,
-      w = 60, h = 60,
-      text = 'start'
-    }) => {
-      return `
-      <div id="${id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-start">
-        <div style="position:relative">
-          <svg:svg width="${w}" height="${h}">
-            <svg:ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}"></svg:ellipse>
-            <svg:text text-anchor="middle" x="${w / 2}" y="${h / 2}" dominant-baseline="central">${text}</svg:text>
-          </svg:svg>
-        </div>
-        <jtk-source port-type="start" filter="svg *" filter-negate="true"></jtk-source>
-      </div>
-      `
-    }
-  }],
-  ['Task', {
-    draggable: true,
-    endpoint: [
-      'TopCenter',
-      'BottomCenter',
-      'LeftMiddle',
-      'RightMiddle'
-    ],
-    render: ({
-      id,
-      x = 0, y = 0,
-      w = 140, h = 60,
-      text = 'task'
-    }) => {
-      return `
-      <div id="${id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-task">
-        <div style="position:relative">
-          <svg:svg width="${w}" height="${h}">
-            <svg:ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}"></svg:ellipse>
-            <svg:text text-anchor="middle" x="${w / 2}" y="${h / 2}" dominant-baseline="central">${text}</svg:text>
-          </svg:svg>
-        </div>
-        <jtk-source port-type="start" filter="svg *" filter-negate="true"></jtk-source>
-      </div>
-      `
-    }
-  }]
-])
+import nodeMeta from './nodeMeta'
 
 export default class JspViewer {
   /** 容器id */
@@ -185,7 +130,7 @@ export default class JspViewer {
   }
 
   // 节点类型表
-  nodesMap = nodesMap
+  nodeMeta = nodeMeta
 
   /** 节点表 */
   nodes = new Map()
@@ -209,11 +154,6 @@ export default class JspViewer {
     })
   }
 
-  init = function (connection) {
-    connection.getOverlay('label')
-      .setLabel(connection.sourceId.substring(15) + '-' + connection.targetId.substring(15))
-  }
-
   /** 挂载节点和连接 */
   mountData (data) {
     const { nodes = [], edges = [] } = data
@@ -233,7 +173,7 @@ export default class JspViewer {
   /** 挂载单个节点 */
   mountNode (node) {
     const { type } = node
-    if (!this.nodesMap.has(type)) {
+    if (!this.nodeMeta.has(type)) {
       throw new Error(`unknown type of node: ${type}`)
     } else {
       let realNode = node
@@ -245,7 +185,7 @@ export default class JspViewer {
       } else {
         this.nodes.set(node.id, node)
       }
-      const nodeDetail = this.nodesMap.get(type)
+      const nodeDetail = this.nodeMeta.get(type)
       const renderTxt = nodeDetail.render(realNode)
       const container = this.getDom(this.id)
       // 挂载实际dom
@@ -260,7 +200,7 @@ export default class JspViewer {
   }
   /** 设置节点的锚点 */
   setEndPoint (node) {
-    const nodeDetail = this.nodesMap.get(node.type)
+    const nodeDetail = this.nodeMeta.get(node.type)
     const { endpoint = [] } = nodeDetail
     for (let i = 0; i < endpoint.length; i += 1) {
       this.jsp.addEndpoint(
@@ -325,16 +265,17 @@ export default class JspViewer {
   }
   /** 设置拖拽 */
   setDraggable (selector) {
-    var option = {
+    const that = this
+    const option = {
       drag: function () {
         console.log('....draging....')
       },
       stop: function (event, ui) {
         console.log('....stop....')
-        var id = event.el.id
-        var x = event.pos[0]
-        var y = event.pos[1]
-        this.setPosition(id, x, y)
+        const id = event.el.id
+        const x = event.pos[0]
+        const y = event.pos[1]
+        that.setPosition(id, x, y)
         // var node = helper.container.getNode(id)
         // //todo update node here
       },
