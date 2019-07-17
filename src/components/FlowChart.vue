@@ -48,7 +48,11 @@ export default {
 
   .flowchart-object
     position: absolute;
+    background: #fff;
     &.flowchart-start
+      border: 4px solid #ccc;
+      border-radius: 50%;
+    &.flowchart-task
       border: 1px solid #ccc;
-      border-radius: 3px;
+      border-radius: 2px;
 </style>

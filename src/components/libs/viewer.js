@@ -7,17 +7,47 @@ import './Math.uuid'
 const nodesMap = new Map([
   ['Start', {
     draggable: true,
-    render: (props) => {
-      const {
-        id,
-        left = 0,
-        top = 0,
-        w = 400,
-        h = 300,
-        text = 'start'
-      } = props
+    endpoint: [
+      'TopCenter',
+      'BottomCenter',
+      'LeftMiddle',
+      'RightMiddle'
+    ],
+    render: ({
+      id,
+      x = 0, y = 0,
+      w = 60, h = 60,
+      text = 'start'
+    }) => {
       return `
-      <div id="${id}" style="left:${left}px;top:${top}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-start">
+      <div id="${id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-start">
+        <div style="position:relative">
+          <svg:svg width="${w}" height="${h}">
+            <svg:ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}"></svg:ellipse>
+            <svg:text text-anchor="middle" x="${w / 2}" y="${h / 2}" dominant-baseline="central">${text}</svg:text>
+          </svg:svg>
+        </div>
+        <jtk-source port-type="start" filter="svg *" filter-negate="true"></jtk-source>
+      </div>
+      `
+    }
+  }],
+  ['Task', {
+    draggable: true,
+    endpoint: [
+      'TopCenter',
+      'BottomCenter',
+      'LeftMiddle',
+      'RightMiddle'
+    ],
+    render: ({
+      id,
+      x = 0, y = 0,
+      w = 140, h = 60,
+      text = 'task'
+    }) => {
+      return `
+      <div id="${id}" style="left:${x}px;top:${y}px;width:${w}px;height:${h}px;" class="flowchart-object flowchart-task">
         <div style="position:relative">
           <svg:svg width="${w}" height="${h}">
             <svg:ellipse cx="${w / 2}" cy="${h / 2}" rx="${w / 2}" ry="${h / 2}"></svg:ellipse>
@@ -133,18 +163,23 @@ export default class JspViewer {
   targetEndpoint = {
     endpoint: 'Dot',
     paintStyle: {
-      fill: '#7AB02C', radius: 7
+      // fill: '#7AB02C',
+      fill: 'transparent',
+      radius: 7
     },
-    hoverPaintStyle: this.endpointHoverStyle,
+    // hoverPaintStyle: this.endpointHoverStyle,
     maxConnections: -1,
-    dropOptions: { hoverClass: 'hover', activeClass: 'active' },
+    dropOptions: {
+      hoverClass: 'hover',
+      activeClass: 'active'
+    },
     isTarget: true,
     overlays: [
       ['Label', {
         location: [0.5, -0.5],
         label: 'Drop',
         cssClass: 'endpointTargetLabel',
-        visible:false
+        visible: false
       }]
     ]
   }
@@ -182,16 +217,20 @@ export default class JspViewer {
   /** 挂载节点和连接 */
   mountData (data) {
     const { nodes = [], edges = [] } = data
+    // 生成节点
     this.mountNodes(nodes)
+    // 生成连接
+    this.mountConnect(edges)
   }
 
-  /** 挂载节点 */
+  /** 挂载节点数据 */
   mountNodes (nodes) {
     for (let i = 0; i < nodes.length; i += 1) {
       const node = nodes[i]
       this.mountNode(node)
     }
   }
+  /** 挂载单个节点 */
   mountNode (node) {
     const { type } = node
     if (!this.nodesMap.has(type)) {
@@ -214,6 +253,47 @@ export default class JspViewer {
       // 设置拖拽
       if (nodeDetail.draggable) {
         this.setDraggable(realNode.id)
+      }
+      // 设置锚点
+      this.setEndPoint(realNode)
+    }
+  }
+  /** 设置节点的锚点 */
+  setEndPoint (node) {
+    const nodeDetail = this.nodesMap.get(node.type)
+    const { endpoint = [] } = nodeDetail
+    for (let i = 0; i < endpoint.length; i += 1) {
+      this.jsp.addEndpoint(
+        node.id,
+        this.targetEndpoint,
+        {
+          anchor: endpoint[i],
+          uuid: `${node.id}_target_${endpoint[i]}`
+        }
+      )
+      this.jsp.addEndpoint(
+        node.id,
+        this.sourceEndpoint,
+        {
+          anchor: endpoint[i],
+          uuid: `${node.id}_source_${endpoint[i]}`
+        }
+      )
+    }
+  }
+
+  /** 生成连接 */
+  mountConnect (list) {
+    for (let i = 0; i < list.length; i += 1) {
+      const link = list[i]
+      const { source, target } = link
+      if (!this.nodes.has(source.node) || !this.nodes.has(target.node)) {
+        // 某个节点不存在
+        console.warn('some node did not exist')
+      } else {
+        this.jsp.connect({
+          uuids: [source.endpoint, target.endpoint]
+        })
       }
     }
   }
