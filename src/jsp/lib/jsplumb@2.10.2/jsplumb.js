@@ -3174,176 +3174,173 @@
     this.listManager = new root.jsPlumbListManager(this);
   };
 
-    _ju.extend(root.jsPlumbInstance, _ju.EventGenerator, {
-        setAttribute: function (el, a, v) {
-            this.setAttribute(el, a, v);
-        },
-        getAttribute: function (el, a) {
-            return this.getAttribute(root.jsPlumb.getElement(el), a);
-        },
-        convertToFullOverlaySpec: function(spec) {
-            if (_ju.isString(spec)) {
-                spec = [ spec, { } ];
-            }
-            spec[1].id = spec[1].id || _ju.uuid();
-            return spec;
-        },
-        registerConnectionType: function (id, type) {
-            this._connectionTypes[id] = root.jsPlumb.extend({}, type);
-            if (type.overlays) {
-                var to = {};
-                for (var i = 0; i < type.overlays.length; i++) {
-                    // if a string, convert to object representation so that we can store the typeid on it.
-                    // also assign an id.
-                    var fo = this.convertToFullOverlaySpec(type.overlays[i]);
-                    to[fo[1].id] = fo;
-                }
-                this._connectionTypes[id].overlays = to;
-            }
-        },
-        registerConnectionTypes: function (types) {
-            for (var i in types) {
-                this.registerConnectionType(i, types[i]);
-            }
-        },
-        registerEndpointType: function (id, type) {
-            this._endpointTypes[id] = root.jsPlumb.extend({}, type);
-            if (type.overlays) {
-                var to = {};
-                for (var i = 0; i < type.overlays.length; i++) {
-                    // if a string, convert to object representation so that we can store the typeid on it.
-                    // also assign an id.
-                    var fo = this.convertToFullOverlaySpec(type.overlays[i]);
-                    to[fo[1].id] = fo;
-                }
-                this._endpointTypes[id].overlays = to;
-            }
-        },
-        registerEndpointTypes: function (types) {
-            for (var i in types) {
-                this.registerEndpointType(i, types[i]);
-            }
-        },
-        getType: function (id, typeDescriptor) {
-            return typeDescriptor === "connection" ? this._connectionTypes[id] : this._endpointTypes[id];
-        },
-        setIdChanged: function (oldId, newId) {
-            this.setId(oldId, newId, true);
-        },
-        // set parent: change the parent for some node and update all the registrations we need to.
-        setParent: function (el, newParent) {
-            var _dom = this.getElement(el),
-                _id = this.getId(_dom),
-                _pdom = this.getElement(newParent),
-                _pid = this.getId(_pdom),
-                dm = this.getDragManager();
-
-            _dom.parentNode.removeChild(_dom);
-            _pdom.appendChild(_dom);
-            if (dm) {
-                dm.setParent(_dom, _id, _pdom, _pid);
-            }
-        },
-        extend: function (o1, o2, names) {
-            var i;
-            if (names) {
-                for (i = 0; i < names.length; i++) {
-                    o1[names[i]] = o2[names[i]];
-                }
-            }
-            else {
-                for (i in o2) {
-                    o1[i] = o2[i];
-                }
-            }
-
-            return o1;
-        },
-        floatingConnections: {},
-        getFloatingAnchorIndex: function (jpc) {
-            return jpc.endpoints[0].isFloating() ? 0 : jpc.endpoints[1].isFloating() ? 1 : -1;
-        },
-        proxyConnection :function(connection, index, proxyEl, proxyElId, endpointGenerator, anchorGenerator) {
-            var proxyEp,
-                originalElementId = connection.endpoints[index].elementId,
-                originalEndpoint = connection.endpoints[index];
-
-            connection.proxies = connection.proxies || [];
-            if(connection.proxies[index]) {
-                proxyEp = connection.proxies[index].ep;
-            }else {
-                proxyEp = this.addEndpoint(proxyEl, {
-                    endpoint:endpointGenerator(connection, index),
-                    anchor:anchorGenerator(connection, index),
-                    parameters:{
-                        isProxyEndpoint:true
-                    }
-                });
-            }
-            proxyEp.setDeleteOnEmpty(true);
-
-            // for this index, stash proxy info: the new EP, the original EP.
-            connection.proxies[index] = { ep:proxyEp, originalEp: originalEndpoint };
-
-            // and advise the anchor manager
-            if (index === 0) {
-                // TODO why are there two differently named methods? Why is there not one method that says "some end of this
-                // connection changed (you give the index), and here's the new element and element id."
-                this.anchorManager.sourceChanged(originalElementId, proxyElId, connection, proxyEl);
-            }
-            else {
-                this.anchorManager.updateOtherEndpoint(connection.endpoints[0].elementId, originalElementId, proxyElId, connection);
-                connection.target = proxyEl;
-                connection.targetId = proxyElId;
-            }
-
-            // detach the original EP from the connection.
-            originalEndpoint.detachFromConnection(connection, null, true);
-
-            // set the proxy as the new ep
-            proxyEp.connections = [ connection ];
-            connection.endpoints[index] = proxyEp;
-
-            originalEndpoint.setVisible(false);
-
-            connection.setVisible(true);
-
-            this.revalidate(proxyEl);
-        },
-        unproxyConnection : function(connection, index, proxyElId) {
-            // if connection cleaned up, no proxies, or none for this end of the connection, abort.
-            if (connection._jsPlumb == null || connection.proxies == null || connection.proxies[index] == null) {
-                return;
-            }
-
-            var originalElement = connection.proxies[index].originalEp.element,
-                originalElementId = connection.proxies[index].originalEp.elementId;
-
-            connection.endpoints[index] = connection.proxies[index].originalEp;
-            // and advise the anchor manager
-            if (index === 0) {
-                // TODO why are there two differently named methods? Why is there not one method that says "some end of this
-                // connection changed (you give the index), and here's the new element and element id."
-                this.anchorManager.sourceChanged(proxyElId, originalElementId, connection, originalElement);
-            }
-            else {
-                this.anchorManager.updateOtherEndpoint(connection.endpoints[0].elementId, proxyElId, originalElementId, connection);
-                connection.target = originalElement;
-                connection.targetId = originalElementId;
-            }
-
-            // detach the proxy EP from the connection (which will cause it to be removed as we no longer need it)
-            connection.proxies[index].ep.detachFromConnection(connection, null);
-
-            connection.proxies[index].originalEp.addConnection(connection);
-            if(connection.isVisible()) {
-                connection.proxies[index].originalEp.setVisible(true);
-            }
-
-            // cleanup
-            delete connection.proxies[index];
+  _ju.extend(root.jsPlumbInstance, _ju.EventGenerator, {
+    setAttribute: function (el, a, v) {
+      this.setAttribute(el, a, v);
+    },
+    getAttribute: function (el, a) {
+      return this.getAttribute(root.jsPlumb.getElement(el), a);
+    },
+    convertToFullOverlaySpec: function (spec) {
+      if (_ju.isString(spec)) {
+        spec = [ spec, { } ];
+      }
+      spec[1].id = spec[1].id || _ju.uuid();
+      return spec;
+    },
+    registerConnectionType: function (id, type) {
+      this._connectionTypes[id] = root.jsPlumb.extend({}, type);
+      if (type.overlays) {
+        var to = {};
+        for (var i = 0; i < type.overlays.length; i++) {
+          // if a string, convert to object representation so that we can store the typeid on it.
+          // also assign an id.
+          var fo = this.convertToFullOverlaySpec(type.overlays[i]);
+          to[fo[1].id] = fo;
         }
-    });
+        this._connectionTypes[id].overlays = to;
+      }
+    },
+    registerConnectionTypes: function (types) {
+      for (var i in types) {
+        this.registerConnectionType(i, types[i]);
+      }
+    },
+    registerEndpointType: function (id, type) {
+      this._endpointTypes[id] = root.jsPlumb.extend({}, type);
+      if (type.overlays) {
+        var to = {};
+        for (var i = 0; i < type.overlays.length; i++) {
+          // if a string, convert to object representation so that we can store the typeid on it.
+          // also assign an id.
+          var fo = this.convertToFullOverlaySpec(type.overlays[i]);
+          to[fo[1].id] = fo;
+        }
+        this._endpointTypes[id].overlays = to;
+      }
+    },
+    registerEndpointTypes: function (types) {
+      for (var i in types) {
+        this.registerEndpointType(i, types[i]);
+      }
+    },
+    getType: function (id, typeDescriptor) {
+      return typeDescriptor === 'connection' ? this._connectionTypes[id] : this._endpointTypes[id];
+    },
+    setIdChanged: function (oldId, newId) {
+      this.setId(oldId, newId, true);
+    },
+    // set parent: change the parent for some node and update all the registrations we need to.
+    setParent: function (el, newParent) {
+      var _dom = this.getElement(el);
+      var _id = this.getId(_dom);
+      var _pdom = this.getElement(newParent);
+      var _pid = this.getId(_pdom);
+      var dm = this.getDragManager();
+
+      _dom.parentNode.removeChild(_dom);
+      _pdom.appendChild(_dom);
+      if (dm) {
+        dm.setParent(_dom, _id, _pdom, _pid);
+      }
+    },
+    extend: function (o1, o2, names) {
+      var i;
+      if (names) {
+        for (i = 0; i < names.length; i++) {
+          o1[names[i]] = o2[names[i]];
+        }
+      } else {
+        for (i in o2) {
+          o1[i] = o2[i];
+        }
+      }
+
+      return o1;
+    },
+    floatingConnections: {},
+    getFloatingAnchorIndex: function (jpc) {
+      return jpc.endpoints[0].isFloating() ? 0 : jpc.endpoints[1].isFloating() ? 1 : -1;
+    },
+    proxyConnection: function (connection, index, proxyEl, proxyElId, endpointGenerator, anchorGenerator) {
+      var proxyEp;
+      var originalElementId = connection.endpoints[index].elementId;
+      var originalEndpoint = connection.endpoints[index];
+
+      connection.proxies = connection.proxies || [];
+      if (connection.proxies[index]) {
+        proxyEp = connection.proxies[index].ep;
+      } else {
+        proxyEp = this.addEndpoint(proxyEl, {
+          endpoint: endpointGenerator(connection, index),
+          anchor: anchorGenerator(connection, index),
+          parameters: {
+            isProxyEndpoint: true
+          }
+        });
+      }
+      proxyEp.setDeleteOnEmpty(true);
+
+      // for this index, stash proxy info: the new EP, the original EP.
+      connection.proxies[index] = { ep: proxyEp, originalEp: originalEndpoint };
+
+      // and advise the anchor manager
+      if (index === 0) {
+        // TODO why are there two differently named methods? Why is there not one method that says "some end of this
+        // connection changed (you give the index), and here's the new element and element id."
+        this.anchorManager.sourceChanged(originalElementId, proxyElId, connection, proxyEl);
+      } else {
+        this.anchorManager.updateOtherEndpoint(connection.endpoints[0].elementId, originalElementId, proxyElId, connection);
+        connection.target = proxyEl;
+        connection.targetId = proxyElId;
+      }
+
+      // detach the original EP from the connection.
+      originalEndpoint.detachFromConnection(connection, null, true);
+
+      // set the proxy as the new ep
+      proxyEp.connections = [ connection ];
+      connection.endpoints[index] = proxyEp;
+
+      originalEndpoint.setVisible(false);
+
+      connection.setVisible(true);
+
+      this.revalidate(proxyEl);
+    },
+    unproxyConnection: function (connection, index, proxyElId) {
+      // if connection cleaned up, no proxies, or none for this end of the connection, abort.
+      if (connection._jsPlumb == null || connection.proxies == null || connection.proxies[index] == null) {
+        return;
+      }
+
+      var originalElement = connection.proxies[index].originalEp.element;
+      var originalElementId = connection.proxies[index].originalEp.elementId;
+
+      connection.endpoints[index] = connection.proxies[index].originalEp;
+      // and advise the anchor manager
+      if (index === 0) {
+        // TODO why are there two differently named methods? Why is there not one method that says "some end of this
+        // connection changed (you give the index), and here's the new element and element id."
+        this.anchorManager.sourceChanged(proxyElId, originalElementId, connection, originalElement);
+      } else {
+        this.anchorManager.updateOtherEndpoint(connection.endpoints[0].elementId, proxyElId, originalElementId, connection);
+        connection.target = originalElement;
+        connection.targetId = originalElementId;
+      }
+
+      // detach the proxy EP from the connection (which will cause it to be removed as we no longer need it)
+      connection.proxies[index].ep.detachFromConnection(connection, null);
+
+      connection.proxies[index].originalEp.addConnection(connection);
+      if (connection.isVisible()) {
+        connection.proxies[index].originalEp.setVisible(true);
+      }
+
+      // cleanup
+      delete connection.proxies[index];
+    }
+  });
 
   // ---- static instance + module registration ----
 
@@ -3383,5 +3380,4 @@
   }
 
   // ---- end static instance + AMD registration ----
-
 }).call(typeof window !== 'undefined' ? window : this);
