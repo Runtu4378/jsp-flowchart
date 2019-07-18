@@ -149,8 +149,10 @@ export default class JspViewer {
     this.jsp.bind('connection', (connInfo, originalEvent) => {
       this.initConnectLabel(connInfo.connection)
     })
-    // 挂载数据
-    this.mountData(data)
+    if (data) {
+      // 挂载数据
+      this.mountData(data)
+    }
   }
 
   /** 初始化实例 */
@@ -253,10 +255,13 @@ export default class JspViewer {
   }
   /** 初始化连接标签 */
   initConnectLabel (connection) {
-    // console.log(connection)
+    console.log(connection)
     // console.log(connection.getData())
     const data = connection.getData()
-    const { label = '' } = data
+    let label = data.label
+    if (!label) {
+      label = connection.sourceId.substring(4) + '-' + connection.targetId.substring(4)
+    }
     connection.getOverlay('label').setLabel(label)
   }
 

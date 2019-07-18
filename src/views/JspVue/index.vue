@@ -4,7 +4,7 @@
       <EditArea />
     </div>
     <div class="view-area">
-      <ViewArea />
+      <ViewArea :fcData="fcData" />
     </div>
   </div>
 </template>
@@ -17,6 +17,14 @@ export default {
   components: {
     ViewArea,
     EditArea
+  },
+  data () {
+    return {
+      fcData: {
+        nodes: [],
+        edges: []
+      }
+    }
   }
 }
 </script>

@@ -1,9 +1,14 @@
 <template>
   <div class="wrapper">
-    <h1>jspDemo</h1>
-    <FlowChart
-      :chartData="chartData"
-    />
+    <div class="editor">
+      <FlowChart
+        v-model="chartData"
+        :edit="edit"
+      />
+    </div>
+    <div class="btn-area">
+      <button @click="changeEdit">编辑</button>
+    </div>
   </div>
 </template>
 
@@ -16,6 +21,7 @@ export default {
   },
   data () {
     return {
+      edit: false,
       chartData: {
         nodes: [
           {
@@ -65,6 +71,9 @@ export default {
   mounted () {
   },
   methods: {
+    changeEdit () {
+      this.edit = !this.edit
+    }
   }
 }
 </script>
@@ -73,5 +82,9 @@ export default {
 .wrapper {
   height: 500px;
   width: 100%;
+}
+
+.editor {
+  height: 600px;
 }
 </style>
