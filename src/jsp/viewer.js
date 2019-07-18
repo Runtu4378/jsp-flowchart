@@ -79,10 +79,11 @@ export default class JspViewer {
   // the definition of source endpoints (the small blue ones)
   sourceEndpoint = {
     endpoint: 'Dot',
+    class: 'source-end-point',
     paintStyle: {
       // stroke: '#7AB02C',
       stroke: '#0075FF',
-      fill: 'transparent',
+      fill: '#fff',
       radius: 4,
       strokeWidth: 1
     },
