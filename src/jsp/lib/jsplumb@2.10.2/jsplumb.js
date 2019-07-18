@@ -791,840 +791,876 @@
     };
 
     /*
-      * prepares a final params object that can be passed to _newConnection, taking into account defaults, events, etc.
-      */
+     * prepares a final params object that can be passed to _newConnection, taking into account defaults, events, etc.
+     */
     var _prepareConnectionParams = function (params, referenceParams) {
-        var _p = jsPlumb.extend({ }, params);
-        if (referenceParams) {
-            jsPlumb.extend(_p, referenceParams);
+      var _p = jsPlumb.extend({ }, params);
+      if (referenceParams) {
+        jsPlumb.extend(_p, referenceParams);
+      }
+
+      // hotwire endpoints passed as source or target to sourceEndpoint/targetEndpoint, respectively.
+      if (_p.source) {
+        if (_p.source.endpoint) {
+          _p.sourceEndpoint = _p.source;
+        } else {
+          _p.source = _currentInstance.getElement(_p.source);
         }
-
-        // hotwire endpoints passed as source or target to sourceEndpoint/targetEndpoint, respectively.
-        if (_p.source) {
-            if (_p.source.endpoint) {
-                _p.sourceEndpoint = _p.source;
-            }
-            else {
-                _p.source = _currentInstance.getElement(_p.source);
-            }
+      }
+      if (_p.target) {
+        if (_p.target.endpoint) {
+          _p.targetEndpoint = _p.target;
+        } else {
+          _p.target = _currentInstance.getElement(_p.target);
         }
-        if (_p.target) {
-            if (_p.target.endpoint) {
-                _p.targetEndpoint = _p.target;
-            }
-            else {
-                _p.target = _currentInstance.getElement(_p.target);
-            }
+      }
+
+      // test for endpoint uuids to connect
+      if (params.uuids) {
+        _p.sourceEndpoint = _getEndpoint(params.uuids[0]);
+        _p.targetEndpoint = _getEndpoint(params.uuids[1]);
+      }
+
+      // now ensure that if we do have Endpoints already, they're not full.
+      // source:
+      if (_p.sourceEndpoint && _p.sourceEndpoint.isFull()) {
+        _ju.log(_currentInstance, 'could not add connection; source endpoint is full');
+        return;
+      }
+
+      // target:
+      if (_p.targetEndpoint && _p.targetEndpoint.isFull()) {
+        _ju.log(_currentInstance, 'could not add connection; target endpoint is full');
+        return;
+      }
+
+      // if source endpoint mandates connection type and nothing specified in our params, use it.
+      if (!_p.type && _p.sourceEndpoint) {
+        _p.type = _p.sourceEndpoint.connectionType;
+      }
+
+      // copy in any connectorOverlays that were specified on the source endpoint.
+      // it doesnt copy target endpoint overlays.  i'm not sure if we want it to or not.
+      if (
+        _p.sourceEndpoint &&
+        _p.sourceEndpoint.connectorOverlays
+      ) {
+        _p.overlays = _p.overlays || [];
+        for (var i = 0, j = _p.sourceEndpoint.connectorOverlays.length; i < j; i++) {
+          _p.overlays.push(_p.sourceEndpoint.connectorOverlays[i]);
         }
+      }
 
-        // test for endpoint uuids to connect
-        if (params.uuids) {
-            _p.sourceEndpoint = _getEndpoint(params.uuids[0]);
-            _p.targetEndpoint = _getEndpoint(params.uuids[1]);
-        }
+      // scope
+      if (
+        _p.sourceEndpoint &&
+        _p.sourceEndpoint.scope
+      ) {
+        _p.scope = _p.sourceEndpoint.scope;
+      }
 
-        // now ensure that if we do have Endpoints already, they're not full.
-        // source:
-        if (_p.sourceEndpoint && _p.sourceEndpoint.isFull()) {
-            _ju.log(_currentInstance, "could not add connection; source endpoint is full");
-            return;
-        }
+      // pointer events
+      if (
+        !_p['pointer-events'] &&
+        _p.sourceEndpoint &&
+        _p.sourceEndpoint.connectorPointerEvents
+      ) {
+        _p['pointer-events'] = _p.sourceEndpoint.connectorPointerEvents;
+      }
 
-        // target:
-        if (_p.targetEndpoint && _p.targetEndpoint.isFull()) {
-            _ju.log(_currentInstance, "could not add connection; target endpoint is full");
-            return;
-        }
+      var _addEndpoint = function (el, def, idx) {
+        return _currentInstance.addEndpoint(el, _mergeOverrides(def, {
+          anchor: _p.anchors
+            ? _p.anchors[idx]
+            : _p.anchor,
+          endpoint: _p.endpoints
+            ? _p.endpoints[idx]
+            : _p.endpoint,
+          paintStyle: _p.endpointStyles
+            ? _p.endpointStyles[idx]
+            : _p.endpointStyle,
+          hoverPaintStyle: _p.endpointHoverStyles
+            ? _p.endpointHoverStyles[idx]
+            : _p.endpointHoverStyle
+        }));
+      };
 
-        // if source endpoint mandates connection type and nothing specified in our params, use it.
-        if (!_p.type && _p.sourceEndpoint) {
-            _p.type = _p.sourceEndpoint.connectionType;
-        }
+      // check for makeSource/makeTarget specs.
 
-        // copy in any connectorOverlays that were specified on the source endpoint.
-        // it doesnt copy target endpoint overlays.  i'm not sure if we want it to or not.
-        if (_p.sourceEndpoint && _p.sourceEndpoint.connectorOverlays) {
-            _p.overlays = _p.overlays || [];
-            for (var i = 0, j = _p.sourceEndpoint.connectorOverlays.length; i < j; i++) {
-                _p.overlays.push(_p.sourceEndpoint.connectorOverlays[i]);
-            }
-        }
+      var _oneElementDef = function (type, idx, defs, matchType) {
+        if (
+          _p[type] &&
+          !_p[type].endpoint &&
+          !_p[type + 'Endpoint'] &&
+          !_p.newConnection
+        ) {
+            var tid = _getId(_p[type]);
+            var tep = defs[tid];
 
-        // scope
-        if (_p.sourceEndpoint && _p.sourceEndpoint.scope) {
-            _p.scope = _p.sourceEndpoint.scope;
-        }
+            tep = tep ? tep[matchType] : null;
 
-        // pointer events
-        if (!_p["pointer-events"] && _p.sourceEndpoint && _p.sourceEndpoint.connectorPointerEvents) {
-            _p["pointer-events"] = _p.sourceEndpoint.connectorPointerEvents;
-        }
-
-
-        var _addEndpoint = function (el, def, idx) {
-            return _currentInstance.addEndpoint(el, _mergeOverrides(def, {
-                anchor: _p.anchors ? _p.anchors[idx] : _p.anchor,
-                endpoint: _p.endpoints ? _p.endpoints[idx] : _p.endpoint,
-                paintStyle: _p.endpointStyles ? _p.endpointStyles[idx] : _p.endpointStyle,
-                hoverPaintStyle: _p.endpointHoverStyles ? _p.endpointHoverStyles[idx] : _p.endpointHoverStyle
-            }));
-        };
-
-        // check for makeSource/makeTarget specs.
-
-        var _oneElementDef = function (type, idx, defs, matchType) {
-            if (_p[type] && !_p[type].endpoint && !_p[type + "Endpoint"] && !_p.newConnection) {
-                var tid = _getId(_p[type]), tep = defs[tid];
-
-                tep = tep ? tep[matchType] : null;
-
-                if (tep) {
-                    // if not enabled, return.
-                    if (!tep.enabled) {
-                        return false;
-                    }
-                    var newEndpoint = tep.endpoint != null && tep.endpoint._jsPlumb ? tep.endpoint : _addEndpoint(_p[type], tep.def, idx);
-                    if (newEndpoint.isFull()) {
-                        return false;
-                    }
-                    _p[type + "Endpoint"] = newEndpoint;
-                    if (!_p.scope && tep.def.scope) {
-                        _p.scope = tep.def.scope;
-                    } // provide scope if not already provided and endpoint def has one.
-                    if (tep.uniqueEndpoint) {
-                        if (!tep.endpoint) {
-                            tep.endpoint = newEndpoint;
-                            newEndpoint.setDeleteOnEmpty(false);
-                        }
-                        else {
-                            newEndpoint.finalEndpoint = tep.endpoint;
-                        }
-                    } else {
-                        newEndpoint.setDeleteOnEmpty(true);
-                    }
-
-                    //
-                    // copy in connector overlays if present on the source definition.
-                    //
-                    if (idx === 0 && tep.def.connectorOverlays) {
-                        _p.overlays = _p.overlays || [];
-                        Array.prototype.push.apply(_p.overlays, tep.def.connectorOverlays);
-                    }
+            if (tep) {
+              // if not enabled, return.
+              if (!tep.enabled) {
+                return false;
+              }
+              var newEndpoint = tep.endpoint != null && tep.endpoint._jsPlumb ? tep.endpoint : _addEndpoint(_p[type], tep.def, idx);
+              if (newEndpoint.isFull()) {
+                return false;
+              }
+              _p[type + 'Endpoint'] = newEndpoint;
+              if (!_p.scope && tep.def.scope) {
+                _p.scope = tep.def.scope;
+              } // provide scope if not already provided and endpoint def has one.
+              if (tep.uniqueEndpoint) {
+                if (!tep.endpoint) {
+                  tep.endpoint = newEndpoint;
+                  newEndpoint.setDeleteOnEmpty(false);
+                } else {
+                  newEndpoint.finalEndpoint = tep.endpoint;
                 }
+              } else {
+                newEndpoint.setDeleteOnEmpty(true);
+              }
+
+              //
+              // copy in connector overlays if present on the source definition.
+              //
+              if (idx === 0 && tep.def.connectorOverlays) {
+                _p.overlays = _p.overlays || [];
+                Array.prototype.push.apply(_p.overlays, tep.def.connectorOverlays);
+              }
             }
+        }
+      };
+
+      if (_oneElementDef('source', 0, this.sourceEndpointDefinitions, _p.type || 'default') === false) {
+        return;
+      }
+      if (_oneElementDef('target', 1, this.targetEndpointDefinitions, _p.type || 'default') === false) {
+        return;
+      }
+
+      // last, ensure scopes match
+      if (_p.sourceEndpoint && _p.targetEndpoint) {
+        if (!_scopeMatch(_p.sourceEndpoint, _p.targetEndpoint)) {
+          _p = null;
+        }
+      }
+
+      return _p;
+    }.bind(_currentInstance);
+
+    var _newConnection = function (params) {
+      var connectionFunc = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType();
+
+      params._jsPlumb = _currentInstance;
+      params.newConnection = _newConnection;
+      params.newEndpoint = _newEndpoint;
+      params.endpointsByUUID = endpointsByUUID;
+      params.endpointsByElement = endpointsByElement;
+      params.finaliseConnection = _finaliseConnection;
+      params.id = 'con_' + _idstamp();
+      var con = new connectionFunc(params);
+
+      // if the connection is draggable, then maybe we need to tell the target endpoint to init the
+      // dragging code. it won't run again if it already configured to be draggable.
+      if (con.isDetachable()) {
+        con.endpoints[0].initDraggable('_jsPlumbSource');
+        con.endpoints[1].initDraggable('_jsPlumbTarget');
+      }
+
+      return con;
+    };
+
+    //
+    // adds the connection to the backing model, fires an event if necessary and then redraws
+    //
+    var _finaliseConnection = _currentInstance.finaliseConnection = function (jpc, params, originalEvent, doInformAnchorManager) {
+      params = params || {};
+      // add to list of connections (by scope).
+      if (!jpc.suspendedEndpoint) {
+        connections.push(jpc);
+      }
+
+      jpc.pending = null;
+
+      // turn off isTemporarySource on the source endpoint (only viable on first draw)
+      jpc.endpoints[0].isTemporarySource = false;
+
+      // always inform the anchor manager
+      // except that if jpc has a suspended endpoint it's not true to say the
+      // connection is new; it has just (possibly) moved. the question is whether
+      // to make that call here or in the anchor manager.  i think perhaps here.
+      if (doInformAnchorManager !== false) {
+        _currentInstance.anchorManager.newConnection(jpc);
+      }
+
+      // force a paint
+      _draw(jpc.source);
+
+      // fire an event
+      if (
+        !params.doNotFireConnectionEvent &&
+        params.fireEvent !== false
+      ) {
+        var eventArgs = {
+          connection: jpc,
+          source: jpc.source,
+          target: jpc.target,
+          sourceId: jpc.sourceId,
+          targetId: jpc.targetId,
+          sourceEndpoint: jpc.endpoints[0],
+          targetEndpoint: jpc.endpoints[1]
         };
 
-        if (_oneElementDef("source", 0, this.sourceEndpointDefinitions, _p.type || "default") === false) {
-            return;
-        }
-        if (_oneElementDef("target", 1, this.targetEndpointDefinitions, _p.type || "default") === false) {
-            return;
-        }
+        _currentInstance.fire('connection', eventArgs, originalEvent);
+      }
+    };
 
-        // last, ensure scopes match
-        if (_p.sourceEndpoint && _p.targetEndpoint) {
-            if (!_scopeMatch(_p.sourceEndpoint, _p.targetEndpoint)) {
-                _p = null;
+    /*
+      factory method to prepare a new endpoint.  this should always be used instead of creating Endpoints
+      manually, since this method attaches event listeners and an id.
+      */
+    var _newEndpoint = function (params, id) {
+      var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
+      var _p = jsPlumb.extend({}, params);
+      _p._jsPlumb = _currentInstance;
+      _p.newConnection = _newConnection;
+      _p.newEndpoint = _newEndpoint;
+      _p.endpointsByUUID = endpointsByUUID;
+      _p.endpointsByElement = endpointsByElement;
+      _p.fireDetachEvent = fireDetachEvent;
+      _p.elementId = id || _getId(_p.source);
+      var ep = new endpointFunc(_p);
+      ep.id = 'ep_' + _idstamp();
+      _manage(_p.elementId, _p.source);
+
+      if (!jsPlumb.headless) {
+        _currentInstance.getDragManager().endpointAdded(_p.source, id);
+      }
+
+      return ep;
+    };
+
+    /*
+      * performs the given function operation on all the connections found
+      * for the given element id; this means we find all the endpoints for
+      * the given element, and then for each endpoint find the connectors
+      * connected to it. then we pass each connection in to the given
+      * function.
+      */
+    var _operation = function (elId, func, endpointFunc) {
+      var endpoints = endpointsByElement[elId];
+      if (endpoints && endpoints.length) {
+        for (var i = 0, ii = endpoints.length; i < ii; i++) {
+          for (var j = 0, jj = endpoints[i].connections.length; j < jj; j++) {
+            var retVal = func(endpoints[i].connections[j]);
+            // if the function passed in returns true, we exit.
+            // most functions return false.
+            if (retVal) {
+              return;
             }
+          }
+          if (endpointFunc) {
+            endpointFunc(endpoints[i]);
+          }
+        }
+      }
+    };
+
+    var _setDraggable = function (element, draggable) {
+      return jsPlumb.each(element, function (el) {
+        if (_currentInstance.isDragSupported(el)) {
+          draggableStates[_currentInstance.getAttribute(el, 'id')] = draggable;
+          _currentInstance.setElementDraggable(el, draggable);
+        }
+      });
+    };
+    /*
+      * private method to do the business of hiding/showing.
+      *
+      * @param el
+      *            either Id of the element in question or a library specific
+      *            object for the element.
+      * @param state
+      *            String specifying a value for the css 'display' property
+      *            ('block' or 'none').
+      */
+    var _setVisible = function (el, state, alsoChangeEndpoints) {
+      state = state === 'block';
+      var endpointFunc = null;
+      if (alsoChangeEndpoints) {
+        endpointFunc = function (ep) {
+          ep.setVisible(state, true, true);
+        };
+      }
+      var info = _info(el);
+      _operation(info.id, function (jpc) {
+        if (state && alsoChangeEndpoints) {
+          // this test is necessary because this functionality is new, and i wanted to maintain backwards compatibility.
+          // this block will only set a connection to be visible if the other endpoint in the connection is also visible.
+          var oidx = jpc.sourceId === info.id ? 1 : 0;
+          if (jpc.endpoints[oidx].isVisible()) {
+            jpc.setVisible(true);
+          }
+        } else { // the default behaviour for show, and what always happens for hide, is to just set the visibility without getting clever.
+          jpc.setVisible(state);
+        }
+      }, endpointFunc);
+    };
+    /**
+      * private method to do the business of toggling hiding/showing.
+      */
+    var _toggleVisible = function (elId, changeEndpoints) {
+      var endpointFunc = null;
+      if (changeEndpoints) {
+        endpointFunc = function (ep) {
+          var state = ep.isVisible();
+          ep.setVisible(!state);
+        };
+      }
+      _operation(elId, function (jpc) {
+        var state = jpc.isVisible();
+        jpc.setVisible(!state);
+      }, endpointFunc);
+    };
+
+    // TODO comparison performance
+    var _getCachedData = function (elId) {
+      var o = offsets[elId];
+      if (!o) {
+        return _updateOffset({ elId: elId });
+      } else {
+        return { o: o, s: sizes[elId] };
+      }
+    };
+
+    /**
+      * gets an id for the given element, creating and setting one if
+      * necessary.  the id is of the form
+      *
+      *    jsPlumb_<instance index>_<index in instance>
+      *
+      * where "index in instance" is a monotonically increasing integer that starts at 0,
+      * for each instance.  this method is used not only to assign ids to elements that do not
+      * have them but also to connections and endpoints.
+      */
+    var _getId = function (element, uuid, doNotCreateIfNotFound) {
+      if (_ju.isString(element)) {
+        return element;
+      }
+      if (element == null) {
+        return null;
+      }
+      var id = _currentInstance.getAttribute(element, 'id');
+      if (!id || id === 'undefined') {
+        // check if fixed uuid parameter is given
+        if (arguments.length === 2 && arguments[1] !== undefined) {
+          id = uuid;
+        } else if (arguments.length === 1 || (arguments.length === 3 && !arguments[2])) {
+          id = 'jsPlumb_' + _instanceIndex + '_' + _idstamp();
         }
 
-        return _p;
-    }.bind(_currentInstance),
+        if (!doNotCreateIfNotFound) {
+          _currentInstance.setAttribute(element, 'id', id);
+        }
+      }
+      return id;
+    };
 
-          _newConnection = function (params) {
-              var connectionFunc = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType();
+    this.setConnectionBeingDragged = function (v) {
+      connectionBeingDragged = v;
+    };
+    this.isConnectionBeingDragged = function () {
+      return connectionBeingDragged;
+    };
 
-              params._jsPlumb = _currentInstance;
-              params.newConnection = _newConnection;
-              params.newEndpoint = _newEndpoint;
-              params.endpointsByUUID = endpointsByUUID;
-              params.endpointsByElement = endpointsByElement;
-              params.finaliseConnection = _finaliseConnection;
-              params.id = "con_" + _idstamp();
-              var con = new connectionFunc(params);
+    /**
+      * Returns a map of all the elements this jsPlumbInstance is currently managing.
+      * @returns {Object} Map of [id-> {el, endpoint[], connection, position}] information.
+      */
+    this.getManagedElements = function () {
+      return managedElements;
+    };
 
-              // if the connection is draggable, then maybe we need to tell the target endpoint to init the
-              // dragging code. it won't run again if it already configured to be draggable.
-              if (con.isDetachable()) {
-                  con.endpoints[0].initDraggable("_jsPlumbSource");
-                  con.endpoints[1].initDraggable("_jsPlumbTarget");
-              }
+    this.connectorClass = 'jtk-connector';
+    this.connectorOutlineClass = 'jtk-connector-outline';
+    this.connectedClass = 'jtk-connected';
+    this.hoverClass = 'jtk-hover';
+    this.endpointClass = 'jtk-endpoint';
+    this.endpointConnectedClass = 'jtk-endpoint-connected';
+    this.endpointFullClass = 'jtk-endpoint-full';
+    this.endpointDropAllowedClass = 'jtk-endpoint-drop-allowed';
+    this.endpointDropForbiddenClass = 'jtk-endpoint-drop-forbidden';
+    this.overlayClass = 'jtk-overlay';
+    this.draggingClass = 'jtk-dragging';// CONVERTED
+    this.elementDraggingClass = 'jtk-element-dragging';// CONVERTED
+    this.sourceElementDraggingClass = 'jtk-source-element-dragging'; // CONVERTED
+    this.targetElementDraggingClass = 'jtk-target-element-dragging';// CONVERTED
+    this.endpointAnchorClassPrefix = 'jtk-endpoint-anchor';
+    this.hoverSourceClass = 'jtk-source-hover';
+    this.hoverTargetClass = 'jtk-target-hover';
+    this.dragSelectClass = 'jtk-drag-select';
 
-              return con;
-          },
+    this.Anchors = {};
+    this.Connectors = { svg: {} };
+    this.Endpoints = { svg: {} };
+    this.Overlays = { svg: {} };
+    this.ConnectorRenderers = {};
+    this.SVG = 'svg';
 
-          //
-          // adds the connection to the backing model, fires an event if necessary and then redraws
-          //
-          _finaliseConnection = _currentInstance.finaliseConnection = function (jpc, params, originalEvent, doInformAnchorManager) {
-              params = params || {};
-              // add to list of connections (by scope).
-              if (!jpc.suspendedEndpoint) {
-                  connections.push(jpc);
-              }
+    // ---- jsPlumbInstance public API ----
 
-              jpc.pending = null;
+    this.addEndpoint = function (el, params, referenceParams) {
+      referenceParams = referenceParams || {};
+      var p = jsPlumb.extend({}, referenceParams);
+      jsPlumb.extend(p, params);
+      p.endpoint = p.endpoint || _currentInstance.Defaults.Endpoint;
+      p.paintStyle = p.paintStyle || _currentInstance.Defaults.EndpointStyle;
 
-              // turn off isTemporarySource on the source endpoint (only viable on first draw)
-              jpc.endpoints[0].isTemporarySource = false;
+      var results = [];
+      var inputs = (_ju.isArray(el) || (el.length != null && !_ju.isString(el))) ? el : [ el ];
 
-              // always inform the anchor manager
-              // except that if jpc has a suspended endpoint it's not true to say the
-              // connection is new; it has just (possibly) moved. the question is whether
-              // to make that call here or in the anchor manager.  i think perhaps here.
-              if (doInformAnchorManager !== false) {
-                  _currentInstance.anchorManager.newConnection(jpc);
-              }
+      for (var i = 0, j = inputs.length; i < j; i++) {
+        p.source = _currentInstance.getElement(inputs[i]);
+        _ensureContainer(p.source);
 
-              // force a paint
-              _draw(jpc.source);
+        var id = _getId(p.source);
+        var e = _newEndpoint(p, id);
 
-              // fire an event
-              if (!params.doNotFireConnectionEvent && params.fireEvent !== false) {
+        // ensure element is managed.
+        var myOffset = _manage(id, p.source).info.o;
+        _ju.addToList(endpointsByElement, id, e);
 
-                  var eventArgs = {
-                      connection: jpc,
-                      source: jpc.source, target: jpc.target,
-                      sourceId: jpc.sourceId, targetId: jpc.targetId,
-                      sourceEndpoint: jpc.endpoints[0], targetEndpoint: jpc.endpoints[1]
-                  };
+        if (!_suspendDrawing) {
+          e.paint({
+            anchorLoc: e.anchor.compute({
+              xy: [ myOffset.left, myOffset.top ],
+              wh: sizes[id],
+              element: e,
+              timestamp: _suspendedAt
+            }),
+            timestamp: _suspendedAt
+          });
+        }
 
-                  _currentInstance.fire("connection", eventArgs, originalEvent);
-              }
-          },
+        results.push(e);
+      }
 
-          /*
-            factory method to prepare a new endpoint.  this should always be used instead of creating Endpoints
-            manually, since this method attaches event listeners and an id.
-            */
-          _newEndpoint = function (params, id) {
-              var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
-              var _p = jsPlumb.extend({}, params);
-              _p._jsPlumb = _currentInstance;
-              _p.newConnection = _newConnection;
-              _p.newEndpoint = _newEndpoint;
-              _p.endpointsByUUID = endpointsByUUID;
-              _p.endpointsByElement = endpointsByElement;
-              _p.fireDetachEvent = fireDetachEvent;
-              _p.elementId = id || _getId(_p.source);
-              var ep = new endpointFunc(_p);
-              ep.id = "ep_" + _idstamp();
-              _manage(_p.elementId, _p.source);
+      return results.length === 1 ? results[0] : results;
+    };
 
-              if (!jsPlumb.headless) {
-                  _currentInstance.getDragManager().endpointAdded(_p.source, id);
-              }
+    this.addEndpoints = function (el, endpoints, referenceParams) {
+      var results = [];
+      for (var i = 0, j = endpoints.length; i < j; i++) {
+        var e = _currentInstance.addEndpoint(el, endpoints[i], referenceParams);
+        if (_ju.isArray(e)) {
+          Array.prototype.push.apply(results, e);
+        } else {
+          results.push(e);
+        }
+      }
+      return results;
+    };
 
-              return ep;
-          },
+    this.animate = function (el, properties, options) {
+      if (!this.animationSupported) {
+        return false;
+      }
 
-          /*
-            * performs the given function operation on all the connections found
-            * for the given element id; this means we find all the endpoints for
-            * the given element, and then for each endpoint find the connectors
-            * connected to it. then we pass each connection in to the given
-            * function.
-            */
-          _operation = function (elId, func, endpointFunc) {
-              var endpoints = endpointsByElement[elId];
-              if (endpoints && endpoints.length) {
-                  for (var i = 0, ii = endpoints.length; i < ii; i++) {
-                      for (var j = 0, jj = endpoints[i].connections.length; j < jj; j++) {
-                          var retVal = func(endpoints[i].connections[j]);
-                          // if the function passed in returns true, we exit.
-                          // most functions return false.
-                          if (retVal) {
-                              return;
-                          }
-                      }
-                      if (endpointFunc) {
-                          endpointFunc(endpoints[i]);
-                      }
-                  }
-              }
-          },
+      options = options || {};
+      var del = _currentInstance.getElement(el);
+      var id = _getId(del);
+      var stepFunction = jsPlumb.animEvents.step;
+      var completeFunction = jsPlumb.animEvents.complete;
 
-          _setDraggable = function (element, draggable) {
-              return jsPlumb.each(element, function (el) {
-                  if (_currentInstance.isDragSupported(el)) {
-                      draggableStates[_currentInstance.getAttribute(el, "id")] = draggable;
-                      _currentInstance.setElementDraggable(el, draggable);
-                  }
-              });
-          },
-          /*
-            * private method to do the business of hiding/showing.
-            *
-            * @param el
-            *            either Id of the element in question or a library specific
-            *            object for the element.
-            * @param state
-            *            String specifying a value for the css 'display' property
-            *            ('block' or 'none').
-            */
-          _setVisible = function (el, state, alsoChangeEndpoints) {
-              state = state === "block";
-              var endpointFunc = null;
-              if (alsoChangeEndpoints) {
-                  endpointFunc = function (ep) {
-                      ep.setVisible(state, true, true);
-                  };
-              }
-              var info = _info(el);
-              _operation(info.id, function (jpc) {
-                  if (state && alsoChangeEndpoints) {
-                      // this test is necessary because this functionality is new, and i wanted to maintain backwards compatibility.
-                      // this block will only set a connection to be visible if the other endpoint in the connection is also visible.
-                      var oidx = jpc.sourceId === info.id ? 1 : 0;
-                      if (jpc.endpoints[oidx].isVisible()) {
-                          jpc.setVisible(true);
-                      }
-                  }
-                  else { // the default behaviour for show, and what always happens for hide, is to just set the visibility without getting clever.
-                      jpc.setVisible(state);
-                  }
-              }, endpointFunc);
-          },
-          /**
-            * private method to do the business of toggling hiding/showing.
-            */
-          _toggleVisible = function (elId, changeEndpoints) {
-              var endpointFunc = null;
-              if (changeEndpoints) {
-                  endpointFunc = function (ep) {
-                      var state = ep.isVisible();
-                      ep.setVisible(!state);
-                  };
-              }
-              _operation(elId, function (jpc) {
-                  var state = jpc.isVisible();
-                  jpc.setVisible(!state);
-              }, endpointFunc);
-          },
+      options[stepFunction] = _ju.wrap(options[stepFunction], function () {
+        _currentInstance.revalidate(id);
+      });
 
-          // TODO comparison performance
-          _getCachedData = function (elId) {
-              var o = offsets[elId];
-              if (!o) {
-                  return _updateOffset({elId: elId});
-              }
-              else {
-                  return {o: o, s: sizes[elId]};
-              }
-          },
+      // onComplete repaints, just to make sure everything looks good at the end of the animation.
+      options[completeFunction] = _ju.wrap(options[completeFunction], function () {
+        _currentInstance.revalidate(id);
+      });
 
-          /**
-            * gets an id for the given element, creating and setting one if
-            * necessary.  the id is of the form
-            *
-            *    jsPlumb_<instance index>_<index in instance>
-            *
-            * where "index in instance" is a monotonically increasing integer that starts at 0,
-            * for each instance.  this method is used not only to assign ids to elements that do not
-            * have them but also to connections and endpoints.
-            */
-          _getId = function (element, uuid, doNotCreateIfNotFound) {
-              if (_ju.isString(element)) {
-                  return element;
-              }
-              if (element == null) {
-                  return null;
-              }
-              var id = _currentInstance.getAttribute(element, "id");
-              if (!id || id === "undefined") {
-                  // check if fixed uuid parameter is given
-                  if (arguments.length === 2 && arguments[1] !== undefined) {
-                      id = uuid;
-                  }
-                  else if (arguments.length === 1 || (arguments.length === 3 && !arguments[2])) {
-                      id = "jsPlumb_" + _instanceIndex + "_" + _idstamp();
-                  }
+      _currentInstance.doAnimate(del, properties, options);
+    };
 
-                  if (!doNotCreateIfNotFound) {
-                      _currentInstance.setAttribute(element, "id", id);
-                  }
-              }
-              return id;
-          };
+    /**
+      * checks for a listener for the given condition, executing it if found, passing in the given value.
+      * condition listeners would have been attached using "bind" (which is, you could argue, now overloaded, since
+      * firing click events etc is a bit different to what this does).  i thought about adding a "bindCondition"
+      * or something, but decided against it, for the sake of simplicity. jsPlumb will never fire one of these
+      * condition events anyway.
+      */
+    this.checkCondition = function (conditionName, args) {
+      var l = _currentInstance.getListener(conditionName);
+      var r = true;
 
-      this.setConnectionBeingDragged = function (v) {
-          connectionBeingDragged = v;
-      };
-      this.isConnectionBeingDragged = function () {
-          return connectionBeingDragged;
-      };
-
-      /**
-        * Returns a map of all the elements this jsPlumbInstance is currently managing.
-        * @returns {Object} Map of [id-> {el, endpoint[], connection, position}] information.
-        */
-      this.getManagedElements = function() {
-          return managedElements;
-      };
-
-      this.connectorClass = "jtk-connector";
-      this.connectorOutlineClass = "jtk-connector-outline";
-      this.connectedClass = "jtk-connected";
-      this.hoverClass = "jtk-hover";
-      this.endpointClass = "jtk-endpoint";
-      this.endpointConnectedClass = "jtk-endpoint-connected";
-      this.endpointFullClass = "jtk-endpoint-full";
-      this.endpointDropAllowedClass = "jtk-endpoint-drop-allowed";
-      this.endpointDropForbiddenClass = "jtk-endpoint-drop-forbidden";
-      this.overlayClass = "jtk-overlay";
-      this.draggingClass = "jtk-dragging";// CONVERTED
-      this.elementDraggingClass = "jtk-element-dragging";// CONVERTED
-      this.sourceElementDraggingClass = "jtk-source-element-dragging"; // CONVERTED
-      this.targetElementDraggingClass = "jtk-target-element-dragging";// CONVERTED
-      this.endpointAnchorClassPrefix = "jtk-endpoint-anchor";
-      this.hoverSourceClass = "jtk-source-hover";
-      this.hoverTargetClass = "jtk-target-hover";
-      this.dragSelectClass = "jtk-drag-select";
-
-      this.Anchors = {};
-      this.Connectors = {  "svg": {} };
-      this.Endpoints = { "svg": {} };
-      this.Overlays = { "svg": {} } ;
-      this.ConnectorRenderers = {};
-      this.SVG = "svg";
-
-// --------------------------- jsPlumbInstance public API ---------------------------------------------------------
-
-
-      this.addEndpoint = function (el, params, referenceParams) {
-          referenceParams = referenceParams || {};
-          var p = jsPlumb.extend({}, referenceParams);
-          jsPlumb.extend(p, params);
-          p.endpoint = p.endpoint || _currentInstance.Defaults.Endpoint;
-          p.paintStyle = p.paintStyle || _currentInstance.Defaults.EndpointStyle;
-
-          var results = [],
-              inputs = (_ju.isArray(el) || (el.length != null && !_ju.isString(el))) ? el : [ el ];
-
-          for (var i = 0, j = inputs.length; i < j; i++) {
-              p.source = _currentInstance.getElement(inputs[i]);
-              _ensureContainer(p.source);
-
-              var id = _getId(p.source), e = _newEndpoint(p, id);
-
-              // ensure element is managed.
-              var myOffset = _manage(id, p.source).info.o;
-              _ju.addToList(endpointsByElement, id, e);
-
-              if (!_suspendDrawing) {
-                  e.paint({
-                      anchorLoc: e.anchor.compute({ xy: [ myOffset.left, myOffset.top ], wh: sizes[id], element: e, timestamp: _suspendedAt }),
-                      timestamp: _suspendedAt
-                  });
-              }
-
-              results.push(e);
+      if (l && l.length > 0) {
+        var values = Array.prototype.slice.call(arguments, 1);
+        try {
+          for (var i = 0, j = l.length; i < j; i++) {
+            r = r && l[i].apply(l[i], values);
           }
+        } catch (e) {
+          _ju.log(_currentInstance, 'cannot check condition [' + conditionName + ']' + e);
+        }
+      }
+      return r;
+    };
 
-          return results.length === 1 ? results[0] : results;
+    this.connect = function (params, referenceParams) {
+      // prepare a final set of parameters to create connection with
+      var _p = _prepareConnectionParams(params, referenceParams)
+      var jpc;
+      // TODO probably a nicer return value if the connection was not made.  _prepareConnectionParams
+      // will return null (and log something) if either endpoint was full.  what would be nicer is to
+      // create a dedicated 'error' object.
+      if (_p) {
+        if (_p.source == null && _p.sourceEndpoint == null) {
+          _ju.log('Cannot establish connection - source does not exist');
+          return;
+        }
+        if (_p.target == null && _p.targetEndpoint == null) {
+          _ju.log('Cannot establish connection - target does not exist');
+          return;
+        }
+        _ensureContainer(_p.source);
+        // create the connection.  it is not yet registered
+        jpc = _newConnection(_p);
+        // now add it the model, fire an event, and redraw
+        _finaliseConnection(jpc, _p);
+      }
+      return jpc;
+    };
+
+    var stTypes = [
+      { el: 'source', elId: 'sourceId', epDefs: 'sourceEndpointDefinitions' },
+      { el: 'target', elId: 'targetId', epDefs: 'targetEndpointDefinitions' }
+    ];
+
+    var _set = function (c, el, idx, doNotRepaint) {
+      var ep;
+      var _st = stTypes[idx];
+      var cId = c[_st.elId];
+      var cEl = c[_st.el];
+      var sid;
+      var sep;
+      var oldEndpoint = c.endpoints[idx];
+
+      var evtParams = {
+        index: idx,
+        originalSourceId: idx === 0 ? cId : c.sourceId,
+        newSourceId: c.sourceId,
+        originalTargetId: idx === 1 ? cId : c.targetId,
+        newTargetId: c.targetId,
+        connection: c
       };
 
-      this.addEndpoints = function (el, endpoints, referenceParams) {
-          var results = [];
+      if (el.constructor === jsPlumb.Endpoint) {
+        ep = el;
+        ep.addConnection(c);
+        el = ep.element;
+      } else {
+        sid = _getId(el);
+        sep = this[_st.epDefs][sid];
+
+        if (sid === c[_st.elId]) {
+          ep = null; // dont change source/target if the element is already the one given.
+        } else if (sep) {
+          for (var t in sep) {
+            if (!sep[t].enabled) {
+              return;
+            }
+            ep = sep[t].endpoint != null && sep[t].endpoint._jsPlumb ? sep[t].endpoint : this.addEndpoint(el, sep[t].def);
+            if (sep[t].uniqueEndpoint) {
+              sep[t].endpoint = ep;
+            }
+            ep.addConnection(c);
+          }
+        } else {
+          ep = c.makeEndpoint(idx === 0, el, sid);
+        }
+      }
+
+      if (ep != null) {
+        oldEndpoint.detachFromConnection(c);
+        c.endpoints[idx] = ep;
+        c[_st.el] = ep.element;
+        c[_st.elId] = ep.elementId;
+        evtParams[idx === 0 ? 'newSourceId' : 'newTargetId'] = ep.elementId;
+
+        fireMoveEvent(evtParams);
+
+        if (!doNotRepaint) {
+          c.repaint();
+        }
+      }
+
+      evtParams.element = el;
+      return evtParams;
+    }.bind(this);
+
+    this.setSource = function (connection, el, doNotRepaint) {
+      var p = _set(connection, el, 0, doNotRepaint);
+      this.anchorManager.sourceChanged(p.originalSourceId, p.newSourceId, connection, p.el);
+    };
+    this.setTarget = function (connection, el, doNotRepaint) {
+      var p = _set(connection, el, 1, doNotRepaint);
+      this.anchorManager.updateOtherEndpoint(p.originalSourceId, p.originalTargetId, p.newTargetId, connection);
+    };
+
+    this.deleteEndpoint = function (object, dontUpdateHover, deleteAttachedObjects) {
+      var endpoint = (typeof object === 'string') ? endpointsByUUID[object] : object;
+      if (endpoint) {
+        _currentInstance.deleteObject({
+          endpoint: endpoint,
+          dontUpdateHover: dontUpdateHover,
+          deleteAttachedObjects: deleteAttachedObjects
+        });
+      }
+      return _currentInstance;
+    };
+
+    this.deleteEveryEndpoint = function () {
+      var _is = _currentInstance.setSuspendDrawing(true);
+      for (var id in endpointsByElement) {
+        var endpoints = endpointsByElement[id];
+        if (endpoints && endpoints.length) {
           for (var i = 0, j = endpoints.length; i < j; i++) {
-              var e = _currentInstance.addEndpoint(el, endpoints[i], referenceParams);
-              if (_ju.isArray(e)) {
-                  Array.prototype.push.apply(results, e);
-              }
-              else {
-                  results.push(e);
-              }
+            _currentInstance.deleteEndpoint(endpoints[i], true);
           }
-          return results;
-      };
+        }
+      }
+      endpointsByElement = {};
+      managedElements = {};
+      endpointsByUUID = {};
+      offsets = {};
+      offsetTimestamps = {};
+      _currentInstance.anchorManager.reset();
+      var dm = _currentInstance.getDragManager();
+      if (dm) {
+        dm.reset();
+      }
+      if (!_is) {
+        _currentInstance.setSuspendDrawing(false);
+      }
+      return _currentInstance;
+    };
 
-      this.animate = function (el, properties, options) {
-          if (!this.animationSupported) {
-              return false;
+    var fireDetachEvent = function (jpc, doFireEvent, originalEvent) {
+      // may have been given a connection, or in special cases, an object
+      var connType = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType();
+      var argIsConnection = jpc.constructor === connType;
+      var params = argIsConnection ? {
+        connection: jpc,
+        source: jpc.source,
+        target: jpc.target,
+        sourceId: jpc.sourceId,
+        targetId: jpc.targetId,
+        sourceEndpoint: jpc.endpoints[0],
+        targetEndpoint: jpc.endpoints[1]
+      } : jpc;
+
+      if (doFireEvent) {
+        _currentInstance.fire('connectionDetached', params, originalEvent);
+      }
+
+      // always fire this. used by internal jsplumb stuff.
+      _currentInstance.fire('internal.connectionDetached', params, originalEvent);
+
+      _currentInstance.anchorManager.connectionDetached(params);
+    };
+
+    var fireMoveEvent = _currentInstance.fireMoveEvent = function (params, evt) {
+      _currentInstance.fire('connectionMoved', params, evt);
+    };
+
+    this.unregisterEndpoint = function (endpoint) {
+      if (endpoint._jsPlumb.uuid) {
+        endpointsByUUID[endpoint._jsPlumb.uuid] = null;
+      }
+      _currentInstance.anchorManager.deleteEndpoint(endpoint);
+      // TODO at least replace this with a removeWithFunction call.
+      for (var e in endpointsByElement) {
+        var endpoints = endpointsByElement[e];
+        if (endpoints) {
+          var newEndpoints = [];
+          for (var i = 0, j = endpoints.length; i < j; i++) {
+            if (endpoints[i] !== endpoint) {
+              newEndpoints.push(endpoints[i]);
+            }
           }
 
-          options = options || {};
-          var del = _currentInstance.getElement(el),
-              id = _getId(del),
-              stepFunction = jsPlumb.animEvents.step,
-              completeFunction = jsPlumb.animEvents.complete;
+          endpointsByElement[e] = newEndpoints;
+        }
+        if (endpointsByElement[e].length < 1) {
+          delete endpointsByElement[e];
+        }
+      }
+    };
 
-          options[stepFunction] = _ju.wrap(options[stepFunction], function () {
-              _currentInstance.revalidate(id);
+    var IS_DETACH_ALLOWED = 'isDetachAllowed';
+    var BEFORE_DETACH = 'beforeDetach';
+    var CHECK_CONDITION = 'checkCondition';
+
+    /**
+      * Deletes a Connection.
+      * @method deleteConnection
+      * @param connection Connection to delete
+      * @param {Object} [params] Optional delete parameters
+      * @param {Boolean} [params.doNotFireEvent=false] If true, a connection detached event will not be fired. Otherwise one will.
+      * @param {Boolean} [params.force=false] If true, the connection will be deleted even if a beforeDetach interceptor tries to stop the deletion.
+      * @returns {Boolean} True if the connection was deleted, false otherwise.
+      */
+    this.deleteConnection = function (connection, params) {
+      if (connection != null) {
+        params = params || {};
+
+        if (params.force || _ju.functionChain(true, false, [
+          [ connection.endpoints[0], IS_DETACH_ALLOWED, [ connection ] ],
+          [ connection.endpoints[1], IS_DETACH_ALLOWED, [ connection ] ],
+          [ connection, IS_DETACH_ALLOWED, [ connection ] ],
+          [ _currentInstance, CHECK_CONDITION, [ BEFORE_DETACH, connection ] ]
+        ])) {
+          connection.setHover(false);
+          fireDetachEvent(connection, !connection.pending && params.fireEvent !== false, params.originalEvent);
+
+          connection.endpoints[0].detachFromConnection(connection);
+          connection.endpoints[1].detachFromConnection(connection);
+          _ju.removeWithFunction(connections, function (_c) {
+            return connection.id === _c.id;
           });
 
-          // onComplete repaints, just to make sure everything looks good at the end of the animation.
-          options[completeFunction] = _ju.wrap(options[completeFunction], function () {
-              _currentInstance.revalidate(id);
+          connection.cleanup();
+          connection.destroy();
+          return true;
+        }
+      }
+      return false;
+    };
+
+    /**
+      * Remove all Connections from all elements, but leaves Endpoints in place ((unless a connection is set to auto delete its Endpoints).
+      * @method deleteEveryConnection
+      * @param {Object} [params] optional params object for the call
+      * @param {Boolean} [params.fireEvent=true] Whether or not to fire detach events
+      * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
+      * @returns {Number} The number of connections that were deleted.
+      */
+    this.deleteEveryConnection = function (params) {
+      params = params || {};
+      var count = connections.length;
+      var deletedCount = 0;
+      _currentInstance.batch(function () {
+        for (var i = 0; i < count; i++) {
+          deletedCount += _currentInstance.deleteConnection(connections[0], params) ? 1 : 0;
+        }
+      });
+      return deletedCount;
+    };
+
+    /**
+      * Removes all an element's Connections.
+      * @method deleteConnectionsForElement
+      * @param {Object} el Either the id of the element, or a selector for the element.
+      * @param {Object} [params] Optional parameters.
+      * @param {Boolean} [params.fireEvent=true] Whether or not to fire the detach event.
+      * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
+      * @return {jsPlumbInstance} The current jsPlumb instance.
+      */
+    this.deleteConnectionsForElement = function (el, params) {
+      params = params || {};
+      el = _currentInstance.getElement(el);
+      var id = _getId(el);
+      var endpoints = endpointsByElement[id];
+      if (endpoints && endpoints.length) {
+        for (var i = 0, j = endpoints.length; i < j; i++) {
+          endpoints[i].deleteEveryConnection(params);
+        }
+      }
+      return _currentInstance;
+    };
+
+    /// not public.  but of course its exposed. how to change this.
+    this.deleteObject = function (params) {
+      var result = {
+        endpoints: {},
+        connections: {},
+        endpointCount: 0,
+        connectionCount: 0
+      };
+      var deleteAttachedObjects = params.deleteAttachedObjects !== false;
+
+      var unravelConnection = function (connection) {
+        if (connection != null && result.connections[connection.id] == null) {
+          if (
+            !params.dontUpdateHover &&
+            connection._jsPlumb != null
+          ) {
+            connection.setHover(false);
+          }
+          result.connections[connection.id] = connection;
+          result.connectionCount++;
+        }
+      };
+      var unravelEndpoint = function (endpoint) {
+        if (endpoint != null && result.endpoints[endpoint.id] == null) {
+          if (!params.dontUpdateHover && endpoint._jsPlumb != null) {
+            endpoint.setHover(false);
+          }
+          result.endpoints[endpoint.id] = endpoint;
+          result.endpointCount++;
+
+          if (deleteAttachedObjects) {
+            for (var i = 0; i < endpoint.connections.length; i++) {
+              var c = endpoint.connections[i];
+              unravelConnection(c);
+            }
+          }
+        }
+      };
+
+      if (params.connection) {
+        unravelConnection(params.connection);
+      } else {
+        unravelEndpoint(params.endpoint);
+      }
+
+      // loop through connections
+      for (var i in result.connections) {
+        var c = result.connections[i];
+        if (c._jsPlumb) {
+          _ju.removeWithFunction(connections, function (_c) {
+            return c.id === _c.id;
           });
 
-          _currentInstance.doAnimate(del, properties, options);
-      };
+          fireDetachEvent(c, params.fireEvent === false ? false : !c.pending, params.originalEvent);
+          var doNotCleanup = params.deleteAttachedObjects == null ? null : !params.deleteAttachedObjects;
 
-      /**
-        * checks for a listener for the given condition, executing it if found, passing in the given value.
-        * condition listeners would have been attached using "bind" (which is, you could argue, now overloaded, since
-        * firing click events etc is a bit different to what this does).  i thought about adding a "bindCondition"
-        * or something, but decided against it, for the sake of simplicity. jsPlumb will never fire one of these
-        * condition events anyway.
-        */
-      this.checkCondition = function (conditionName, args) {
-          var l = _currentInstance.getListener(conditionName),
-              r = true;
+          c.endpoints[0].detachFromConnection(c, null, doNotCleanup);
+          c.endpoints[1].detachFromConnection(c, null, doNotCleanup);
 
-          if (l && l.length > 0) {
-              var values = Array.prototype.slice.call(arguments, 1);
-              try {
-                  for (var i = 0, j = l.length; i < j; i++) {
-                      r = r && l[i].apply(l[i], values);
-                  }
-              }
-              catch (e) {
-                  _ju.log(_currentInstance, "cannot check condition [" + conditionName + "]" + e);
-              }
-          }
-          return r;
-      };
+          c.cleanup(true);
+          c.destroy(true);
+        }
+      }
 
-      this.connect = function (params, referenceParams) {
-          // prepare a final set of parameters to create connection with
-          var _p = _prepareConnectionParams(params, referenceParams), jpc;
-          // TODO probably a nicer return value if the connection was not made.  _prepareConnectionParams
-          // will return null (and log something) if either endpoint was full.  what would be nicer is to
-          // create a dedicated 'error' object.
-          if (_p) {
-              if (_p.source == null && _p.sourceEndpoint == null) {
-                  _ju.log("Cannot establish connection - source does not exist");
-                  return;
-              }
-              if (_p.target == null && _p.targetEndpoint == null) {
-                  _ju.log("Cannot establish connection - target does not exist");
-                  return;
-              }
-              _ensureContainer(_p.source);
-              // create the connection.  it is not yet registered
-              jpc = _newConnection(_p);
-              // now add it the model, fire an event, and redraw
-              _finaliseConnection(jpc, _p);
-          }
-          return jpc;
-      };
+      // loop through endpoints
+      for (var j in result.endpoints) {
+        var e = result.endpoints[j];
+        if (e._jsPlumb) {
+          _currentInstance.unregisterEndpoint(e);
+          // FIRE some endpoint deleted event?
+          e.cleanup(true);
+          e.destroy(true);
+        }
+      }
 
-      var stTypes = [
-          { el: "source", elId: "sourceId", epDefs: "sourceEndpointDefinitions" },
-          { el: "target", elId: "targetId", epDefs: "targetEndpointDefinitions" }
-      ];
-
-      var _set = function (c, el, idx, doNotRepaint) {
-          var ep, _st = stTypes[idx], cId = c[_st.elId], cEl = c[_st.el], sid, sep,
-              oldEndpoint = c.endpoints[idx];
-
-          var evtParams = {
-              index: idx,
-              originalSourceId: idx === 0 ? cId : c.sourceId,
-              newSourceId: c.sourceId,
-              originalTargetId: idx === 1 ? cId : c.targetId,
-              newTargetId: c.targetId,
-              connection: c
-          };
-
-          if (el.constructor === jsPlumb.Endpoint) {
-              ep = el;
-              ep.addConnection(c);
-              el = ep.element;
-          }
-          else {
-              sid = _getId(el);
-              sep = this[_st.epDefs][sid];
-
-              if (sid === c[_st.elId]) {
-                  ep = null; // dont change source/target if the element is already the one given.
-              }
-              else if (sep) {
-                  for (var t in sep) {
-                      if (!sep[t].enabled) {
-                          return;
-                      }
-                      ep = sep[t].endpoint != null && sep[t].endpoint._jsPlumb ? sep[t].endpoint : this.addEndpoint(el, sep[t].def);
-                      if (sep[t].uniqueEndpoint) {
-                          sep[t].endpoint = ep;
-                      }
-                      ep.addConnection(c);
-                  }
-              }
-              else {
-                  ep = c.makeEndpoint(idx === 0, el, sid);
-              }
-          }
-
-          if (ep != null) {
-              oldEndpoint.detachFromConnection(c);
-              c.endpoints[idx] = ep;
-              c[_st.el] = ep.element;
-              c[_st.elId] = ep.elementId;
-              evtParams[idx === 0 ? "newSourceId" : "newTargetId"] = ep.elementId;
-
-              fireMoveEvent(evtParams);
-
-              if (!doNotRepaint) {
-                  c.repaint();
-              }
-          }
-
-          evtParams.element = el;
-          return evtParams;
-
-      }.bind(this);
-
-      this.setSource = function (connection, el, doNotRepaint) {
-          var p = _set(connection, el, 0, doNotRepaint);
-          this.anchorManager.sourceChanged(p.originalSourceId, p.newSourceId, connection, p.el);
-      };
-      this.setTarget = function (connection, el, doNotRepaint) {
-          var p = _set(connection, el, 1, doNotRepaint);
-          this.anchorManager.updateOtherEndpoint(p.originalSourceId, p.originalTargetId, p.newTargetId, connection);
-      };
-
-      this.deleteEndpoint = function (object, dontUpdateHover, deleteAttachedObjects) {
-          var endpoint = (typeof object === "string") ? endpointsByUUID[object] : object;
-          if (endpoint) {
-              _currentInstance.deleteObject({ endpoint: endpoint, dontUpdateHover: dontUpdateHover, deleteAttachedObjects:deleteAttachedObjects });
-          }
-          return _currentInstance;
-      };
-
-      this.deleteEveryEndpoint = function () {
-          var _is = _currentInstance.setSuspendDrawing(true);
-          for (var id in endpointsByElement) {
-              var endpoints = endpointsByElement[id];
-              if (endpoints && endpoints.length) {
-                  for (var i = 0, j = endpoints.length; i < j; i++) {
-                      _currentInstance.deleteEndpoint(endpoints[i], true);
-                  }
-              }
-          }
-          endpointsByElement = {};
-          managedElements = {};
-          endpointsByUUID = {};
-          offsets = {};
-          offsetTimestamps = {};
-          _currentInstance.anchorManager.reset();
-          var dm = _currentInstance.getDragManager();
-          if (dm) {
-              dm.reset();
-          }
-          if (!_is) {
-              _currentInstance.setSuspendDrawing(false);
-          }
-          return _currentInstance;
-      };
-
-      var fireDetachEvent = function (jpc, doFireEvent, originalEvent) {
-          // may have been given a connection, or in special cases, an object
-          var connType = _currentInstance.Defaults.ConnectionType || _currentInstance.getDefaultConnectionType(),
-              argIsConnection = jpc.constructor === connType,
-              params = argIsConnection ? {
-                  connection: jpc,
-                  source: jpc.source, target: jpc.target,
-                  sourceId: jpc.sourceId, targetId: jpc.targetId,
-                  sourceEndpoint: jpc.endpoints[0], targetEndpoint: jpc.endpoints[1]
-              } : jpc;
-
-          if (doFireEvent) {
-              _currentInstance.fire("connectionDetached", params, originalEvent);
-          }
-
-          // always fire this. used by internal jsplumb stuff.
-          _currentInstance.fire("internal.connectionDetached", params, originalEvent);
-
-          _currentInstance.anchorManager.connectionDetached(params);
-      };
-
-      var fireMoveEvent = _currentInstance.fireMoveEvent = function (params, evt) {
-          _currentInstance.fire("connectionMoved", params, evt);
-      };
-
-      this.unregisterEndpoint = function (endpoint) {
-          if (endpoint._jsPlumb.uuid) {
-              endpointsByUUID[endpoint._jsPlumb.uuid] = null;
-          }
-          _currentInstance.anchorManager.deleteEndpoint(endpoint);
-          // TODO at least replace this with a removeWithFunction call.
-          for (var e in endpointsByElement) {
-              var endpoints = endpointsByElement[e];
-              if (endpoints) {
-                  var newEndpoints = [];
-                  for (var i = 0, j = endpoints.length; i < j; i++) {
-                      if (endpoints[i] !== endpoint) {
-                          newEndpoints.push(endpoints[i]);
-                      }
-                  }
-
-                  endpointsByElement[e] = newEndpoints;
-              }
-              if (endpointsByElement[e].length < 1) {
-                  delete endpointsByElement[e];
-              }
-          }
-      };
-
-      var IS_DETACH_ALLOWED = "isDetachAllowed";
-      var BEFORE_DETACH = "beforeDetach";
-      var CHECK_CONDITION = "checkCondition";
-
-      /**
-        * Deletes a Connection.
-        * @method deleteConnection
-        * @param connection Connection to delete
-        * @param {Object} [params] Optional delete parameters
-        * @param {Boolean} [params.doNotFireEvent=false] If true, a connection detached event will not be fired. Otherwise one will.
-        * @param {Boolean} [params.force=false] If true, the connection will be deleted even if a beforeDetach interceptor tries to stop the deletion.
-        * @returns {Boolean} True if the connection was deleted, false otherwise.
-        */
-      this.deleteConnection = function(connection, params) {
-
-          if (connection != null) {
-              params = params || {};
-
-              if (params.force || _ju.functionChain(true, false, [
-                      [ connection.endpoints[0], IS_DETACH_ALLOWED, [ connection ] ],
-                      [ connection.endpoints[1], IS_DETACH_ALLOWED, [ connection ] ],
-                      [ connection, IS_DETACH_ALLOWED, [ connection ] ],
-                      [ _currentInstance, CHECK_CONDITION, [ BEFORE_DETACH, connection ] ]
-                  ])) {
-
-                  connection.setHover(false);
-                  fireDetachEvent(connection, !connection.pending && params.fireEvent !== false, params.originalEvent);
-
-                  connection.endpoints[0].detachFromConnection(connection);
-                  connection.endpoints[1].detachFromConnection(connection);
-                  _ju.removeWithFunction(connections, function (_c) {
-                      return connection.id === _c.id;
-                  });
-
-                  connection.cleanup();
-                  connection.destroy();
-                  return true;
-              }
-          }
-          return false;
-      };
-
-      /**
-        * Remove all Connections from all elements, but leaves Endpoints in place ((unless a connection is set to auto delete its Endpoints).
-        * @method deleteEveryConnection
-        * @param {Object} [params] optional params object for the call
-        * @param {Boolean} [params.fireEvent=true] Whether or not to fire detach events
-        * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
-        * @returns {Number} The number of connections that were deleted.
-        */
-      this.deleteEveryConnection = function (params) {
-          params = params || {};
-          var count = connections.length, deletedCount = 0;
-          _currentInstance.batch(function () {
-              for (var i = 0; i < count; i++) {
-                  deletedCount += _currentInstance.deleteConnection(connections[0], params) ? 1 : 0;
-              }
-          });
-          return deletedCount;
-      };
-
-      /**
-        * Removes all an element's Connections.
-        * @method deleteConnectionsForElement
-        * @param {Object} el Either the id of the element, or a selector for the element.
-        * @param {Object} [params] Optional parameters.
-        * @param {Boolean} [params.fireEvent=true] Whether or not to fire the detach event.
-        * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
-        * @return {jsPlumbInstance} The current jsPlumb instance.
-        */
-      this.deleteConnectionsForElement = function (el, params) {
-          params = params || {};
-          el = _currentInstance.getElement(el);
-          var id = _getId(el), endpoints = endpointsByElement[id];
-          if (endpoints && endpoints.length) {
-              for (var i = 0, j = endpoints.length; i < j; i++) {
-                  endpoints[i].deleteEveryConnection(params);
-              }
-          }
-          return _currentInstance;
-      };
-
-      /// not public.  but of course its exposed. how to change this.
-      this.deleteObject = function (params) {
-          var result = {
-                  endpoints: {},
-                  connections: {},
-                  endpointCount: 0,
-                  connectionCount: 0
-              },
-              deleteAttachedObjects = params.deleteAttachedObjects !== false;
-
-          var unravelConnection = function (connection) {
-              if (connection != null && result.connections[connection.id] == null) {
-                  if (!params.dontUpdateHover && connection._jsPlumb != null) {
-                      connection.setHover(false);
-                  }
-                  result.connections[connection.id] = connection;
-                  result.connectionCount++;
-              }
-          };
-          var unravelEndpoint = function (endpoint) {
-              if (endpoint != null && result.endpoints[endpoint.id] == null) {
-                  if (!params.dontUpdateHover && endpoint._jsPlumb != null) {
-                      endpoint.setHover(false);
-                  }
-                  result.endpoints[endpoint.id] = endpoint;
-                  result.endpointCount++;
-
-                  if (deleteAttachedObjects) {
-                      for (var i = 0; i < endpoint.connections.length; i++) {
-                          var c = endpoint.connections[i];
-                          unravelConnection(c);
-                      }
-                  }
-              }
-          };
-
-          if (params.connection) {
-              unravelConnection(params.connection);
-          }
-          else {
-              unravelEndpoint(params.endpoint);
-          }
-
-          // loop through connections
-          for (var i in result.connections) {
-              var c = result.connections[i];
-              if (c._jsPlumb) {
-                  _ju.removeWithFunction(connections, function (_c) {
-                      return c.id === _c.id;
-                  });
-
-                  fireDetachEvent(c, params.fireEvent === false ? false : !c.pending, params.originalEvent);
-                  var doNotCleanup = params.deleteAttachedObjects == null ? null : !params.deleteAttachedObjects;
-
-                  c.endpoints[0].detachFromConnection(c, null, doNotCleanup);
-                  c.endpoints[1].detachFromConnection(c, null, doNotCleanup);
-
-                  c.cleanup(true);
-                  c.destroy(true);
-              }
-          }
-
-          // loop through endpoints
-          for (var j in result.endpoints) {
-              var e = result.endpoints[j];
-              if (e._jsPlumb) {
-                  _currentInstance.unregisterEndpoint(e);
-                  // FIRE some endpoint deleted event?
-                  e.cleanup(true);
-                  e.destroy(true);
-              }
-          }
-
-          return result;
-      };
+      return result;
+    };
 
 
       // helpers for select/selectEndpoints
