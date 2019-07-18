@@ -7,7 +7,9 @@
       />
     </div>
     <div class="btn-area">
-      <button @click="changeEdit">编辑</button>
+      <button
+        @click="changeEdit"
+      >{{ edit ? '退出编辑' : '编辑' }}</button>
     </div>
   </div>
 </template>

@@ -14,12 +14,12 @@ export default new Router({
       component: Home
     },
     {
-      path: '/jspDemo',
-      name: 'jspDemo',
+      path: '/jspViewer',
+      name: 'jspViewer',
       // route level code-splitting
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/JspDemo.vue')
+      component: () => import(/* webpackChunkName: "about" */ './views/JspViewer.vue')
     },
     {
       path: '/jspEditor',
@@ -28,14 +28,6 @@ export default new Router({
       // this generates a separate chunk (about.[hash].js) for this route
       // which is lazy-loaded when the route is visited.
       component: () => import(/* webpackChunkName: "about" */ './views/JspEditor.vue')
-    },
-    {
-      path: '/jspVue',
-      name: 'jspVue',
-      // route level code-splitting
-      // this generates a separate chunk (about.[hash].js) for this route
-      // which is lazy-loaded when the route is visited.
-      component: () => import(/* webpackChunkName: "about" */ './views/JspVue/index.vue')
     }
   ]
 })

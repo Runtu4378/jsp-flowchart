@@ -134,6 +134,12 @@ export default class JspViewer {
     ]
   }
 
+  /** 额外配置-start */
+  dragSetting = {
+    //
+  }
+  /** 额外配置-end */
+
   // 节点类型表
   nodeMeta = nodeMeta
 
