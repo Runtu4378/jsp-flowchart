@@ -21,7 +21,7 @@ export default {
           {
             id: 'start_001',
             type: 'Start',
-            text: 'start node'
+            text: '开始'
           },
           {
             id: 'task_001',
@@ -29,6 +29,20 @@ export default {
             text: 'task 001',
             x: 80,
             y: 100
+          },
+          {
+            id: 'judge_001',
+            type: 'Judge',
+            text: '是否登录',
+            x: 120,
+            y: 180
+          },
+          {
+            id: 'end_001',
+            type: 'End',
+            text: '结束',
+            x: 260,
+            y: 180
           }
         ],
         edges: [
