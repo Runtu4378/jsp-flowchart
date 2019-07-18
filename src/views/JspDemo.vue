@@ -34,6 +34,7 @@ export default {
         edges: [
           {
             id: 1,
+            label: 'connection 001',
             source: {
               node: 'start_001',
               endpoint: 'start_001_source_TopCenter'

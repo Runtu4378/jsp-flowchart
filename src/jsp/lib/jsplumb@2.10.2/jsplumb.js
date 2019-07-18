@@ -11,49 +11,54 @@
  * Dual licensed under the MIT and GPL2 licenses.
  */
 ;(function () {
+  'use strict';
 
-    "use strict";
+  var root = this;
 
-    var root = this;
+  var _ju = root.jsPlumbUtil;
 
-    var _ju = root.jsPlumbUtil,
+  /**
+   * creates a timestamp, using milliseconds since 1970, but as a string.
+   */
+  var _timestamp = function () {
+    return '' + (new Date()).getTime();
+  };
 
-        /**
-         * creates a timestamp, using milliseconds since 1970, but as a string.
-         */
-        _timestamp = function () {
-            return "" + (new Date()).getTime();
-        },
-
-        // helper method to update the hover style whenever it, or paintStyle, changes.
-        // we use paintStyle as the foundation and merge hoverPaintStyle over the
-        // top.
-        _updateHoverStyle = function (component) {
-            if (component._jsPlumb.paintStyle && component._jsPlumb.hoverPaintStyle) {
-                var mergedHoverStyle = {};
-                jsPlumb.extend(mergedHoverStyle, component._jsPlumb.paintStyle);
-                jsPlumb.extend(mergedHoverStyle, component._jsPlumb.hoverPaintStyle);
-                delete component._jsPlumb.hoverPaintStyle;
-                // we want the fill of paintStyle to override a gradient, if possible.
-                if (mergedHoverStyle.gradient && component._jsPlumb.paintStyle.fill) {
-                    delete mergedHoverStyle.gradient;
-                }
-                component._jsPlumb.hoverPaintStyle = mergedHoverStyle;
-            }
-        },
-        events = ["tap", "dbltap", "click", "dblclick", "mouseover", "mouseout", "mousemove", "mousedown", "mouseup", "contextmenu" ],
-        eventFilters = { "mouseout": "mouseleave", "mouseexit": "mouseleave" },
-        _updateAttachedElements = function (component, state, timestamp, sourceElement) {
-            var affectedElements = component.getAttachedElements();
-            if (affectedElements) {
-                for (var i = 0, j = affectedElements.length; i < j; i++) {
-                    if (!sourceElement || sourceElement !== affectedElements[i]) {
-                        affectedElements[i].setHover(state, true, timestamp);			// tell the attached elements not to inform their own attached elements.
-                    }
-                }
-            }
-        },
-        _splitType = function (t) {
+  // helper method to update the hover style whenever it, or paintStyle, changes.
+  // we use paintStyle as the foundation and merge hoverPaintStyle over the
+  // top.
+  var _updateHoverStyle = function (component) {
+    if (
+      component._jsPlumb.paintStyle &&
+      component._jsPlumb.hoverPaintStyle
+    ) {
+      var mergedHoverStyle = {};
+      jsPlumb.extend(mergedHoverStyle, component._jsPlumb.paintStyle);
+      jsPlumb.extend(mergedHoverStyle, component._jsPlumb.hoverPaintStyle);
+      delete component._jsPlumb.hoverPaintStyle;
+      // we want the fill of paintStyle to override a gradient, if possible.
+      if (
+        mergedHoverStyle.gradient &&
+        component._jsPlumb.paintStyle.fill
+      ) {
+        delete mergedHoverStyle.gradient;
+      }
+      component._jsPlumb.hoverPaintStyle = mergedHoverStyle;
+    }
+  }
+  var events = ["tap", "dbltap", "click", "dblclick", "mouseover", "mouseout", "mousemove", "mousedown", "mouseup", "contextmenu" ];
+  var eventFilters = { "mouseout": "mouseleave", "mouseexit": "mouseleave" };
+  var _updateAttachedElements = function (component, state, timestamp, sourceElement) {
+    var affectedElements = component.getAttachedElements();
+    if (affectedElements) {
+      for (var i = 0, j = affectedElements.length; i < j; i++) {
+        if (!sourceElement || sourceElement !== affectedElements[i]) {
+          affectedElements[i].setHover(state, true, timestamp);			// tell the attached elements not to inform their own attached elements.
+        }
+      }
+    }
+  }
+  var _splitType = function (t) {
             return t == null ? null : t.split(" ");
         },
         _mapType = function(map, obj, typeId) {

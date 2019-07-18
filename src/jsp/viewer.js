@@ -29,7 +29,7 @@ export default class JspViewer {
         length: 11,
         id: 'ARROW',
         events: {
-          click: function () {
+          click: () => {
             this.handleArrowClick()
           }
         }
@@ -39,7 +39,7 @@ export default class JspViewer {
         id: 'label',
         cssClass: 'aLabel',
         events: {
-          tap: function () {
+          tap: () => {
             this.handleLabelClick()
           }
         }
@@ -73,16 +73,17 @@ export default class JspViewer {
     outlineStroke: 'white'
   }
   endpointHoverStyle = {
-    fill: '#216477',
-    stroke: '#216477'
+    fill: '#0075FF',
+    stroke: '#0075FF'
   }
   // the definition of source endpoints (the small blue ones)
   sourceEndpoint = {
     endpoint: 'Dot',
     paintStyle: {
-      stroke: '#7AB02C',
+      // stroke: '#7AB02C',
+      stroke: '#0075FF',
       fill: 'transparent',
-      radius: 7,
+      radius: 4,
       strokeWidth: 1
     },
     isSource: true,
@@ -95,7 +96,10 @@ export default class JspViewer {
     connectorStyle: this.connectorPaintStyle,
     hoverPaintStyle: this.endpointHoverStyle,
     connectorHoverStyle: this.connectorHoverStyle,
-    dragOptions: {},
+    dragOptions: {
+      hoverClass: 'hover',
+      activeClass: 'active'
+    },
     overlays: [
       ['Label', {
         location: [0.5, 1.5],
@@ -111,9 +115,8 @@ export default class JspViewer {
     paintStyle: {
       // fill: '#7AB02C',
       fill: 'transparent',
-      radius: 7
+      radius: 4
     },
-    // hoverPaintStyle: this.endpointHoverStyle,
     maxConnections: -1,
     dropOptions: {
       hoverClass: 'hover',
@@ -140,6 +143,11 @@ export default class JspViewer {
     this.id = id
     // 初始化实例
     this.initInstance(this.id)
+    // 初始化事件
+    this.jsp.registerConnectionType('basic', this.basicType)
+    this.jsp.bind('connection', (connInfo, originalEvent) => {
+      this.initConnectLabel(connInfo.connection)
+    })
     // 挂载数据
     this.mountData(data)
   }
@@ -233,10 +241,22 @@ export default class JspViewer {
         console.warn('some node did not exist')
       } else {
         this.jsp.connect({
-          uuids: [source.endpoint, target.endpoint]
+          uuids: [source.endpoint, target.endpoint],
+          data: {
+            id: link.id,
+            label: link.label
+          }
         })
       }
     }
+  }
+  /** 初始化连接标签 */
+  initConnectLabel (connection) {
+    // console.log(connection)
+    // console.log(connection.getData())
+    const data = connection.getData()
+    const { label = '' } = data
+    connection.getOverlay('label').setLabel(label)
   }
 
   // 事件
@@ -278,7 +298,7 @@ export default class JspViewer {
         const y = event.pos[1]
         that.setPosition(id, x, y)
         // var node = helper.container.getNode(id)
-        // //todo update node here
+        // TODO update node here
       },
       containment: 'parent'
     }

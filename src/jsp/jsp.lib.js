@@ -23,4 +23,4 @@ import './lib/jsplumb@2.10.2/renderers-svg.js'
 import './lib/jsplumb@2.10.2/dom.jsplumb.js'
 
 // 默认输出
-// import '../../extra/jsplumb-2.10.2/dist/js/jsplumb.min.js'
+// import '../extra/jsplumb-2.10.2/dist/js/jsplumb.min.js'
