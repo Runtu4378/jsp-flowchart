@@ -1,3 +1,3 @@
 <template>
-  <div>jspVue</div>
+  <div>edit</div>
 </template>
