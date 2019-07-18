@@ -35,7 +35,7 @@ export default class JspViewer {
         }
       }],
       ['Label', {
-        location: 0.1,
+        location: 0.5,
         id: 'label',
         cssClass: 'aLabel',
         events: {
@@ -49,14 +49,7 @@ export default class JspViewer {
   }
   // 样式
   basicType = {
-    connector: 'StateMachine',
-    paintStyle: {
-      stroke: 'red', strokeWidth: 4
-    },
-    hoverPaintStyle: { stroke: 'blue' },
-    overlays: [
-      'Arrow'
-    ]
+    connector: 'Flowchart'
   }
   connectorPaintStyle = {
     strokeWidth: 2,
@@ -79,7 +72,6 @@ export default class JspViewer {
   // the definition of source endpoints (the small blue ones)
   sourceEndpoint = {
     endpoint: 'Dot',
-    class: 'source-end-point',
     paintStyle: {
       // stroke: '#7AB02C',
       stroke: '#0075FF',
@@ -89,7 +81,7 @@ export default class JspViewer {
     },
     isSource: true,
     connector: ['Flowchart', {
-      stub: [40, 60],
+      stub: [16, 16],
       gap: 10,
       cornerRadius: 5,
       alwaysRespectStubs: true
@@ -100,15 +92,7 @@ export default class JspViewer {
     dragOptions: {
       hoverClass: 'hover',
       activeClass: 'active'
-    },
-    overlays: [
-      ['Label', {
-        location: [0.5, 1.5],
-        label: 'Drag',
-        cssClass: 'endpointSourceLabel',
-        visible: false
-      }]
-    ]
+    }
   }
   // the definition of target endpoints (will appear when the user drags a connection)
   targetEndpoint = {
@@ -123,20 +107,12 @@ export default class JspViewer {
       hoverClass: 'hover',
       activeClass: 'active'
     },
-    isTarget: true,
-    overlays: [
-      ['Label', {
-        location: [0.5, -0.5],
-        label: 'Drop',
-        cssClass: 'endpointTargetLabel',
-        visible: false
-      }]
-    ]
+    isTarget: true
   }
 
   /** 额外配置-start */
   dragSetting = {
-    //
+    node: true
   }
   /** 额外配置-end */
 
@@ -148,6 +124,9 @@ export default class JspViewer {
 
   constructor (id, options, data) {
     this.id = id
+    if ('dragSetting' in options) {
+      this.dragSetting = window.jsPlumbUtil.merge(this.dragSetting, options.dragSetting)
+    }
     // 初始化实例
     this.initInstance(this.id)
     // 初始化事件
@@ -209,7 +188,10 @@ export default class JspViewer {
       // 挂载实际dom
       container.append(renderTxt)
       // 设置拖拽
-      if (nodeDetail.draggable) {
+      if (
+        this.dragSetting.node &&
+        nodeDetail.draggable
+      ) {
         this.setDraggable(realNode.id)
       }
       // 设置锚点

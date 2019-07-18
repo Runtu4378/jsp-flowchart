@@ -38,7 +38,9 @@ export default {
   },
   mounted () {
     this.initId()
-    this.jsp = new Viewer(this.id, {}, this.value)
+    this.jsp = new Viewer(this.id, {
+      // dragSetting: { node: false }
+    }, this.value)
   },
   methods: {
     initId () {
