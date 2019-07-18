@@ -1,20 +1,21 @@
 <template>
   <div class="wrapper">
-    <div id="jsp_editor" class="cm-flowchart-editor"></div>
+    <FlowChart v-model="chartData" :edit="true" />
   </div>
 </template>
 
 <script>
-import Editor from '../jsp/editor'
+import FlowChart from '../components/FlowChart'
+import baseData from './baseData'
 
 export default {
-  data () {
-    return {}
+  components: {
+    FlowChart
   },
-  mounted () {
-    this.editor = new Editor({
-      id: 'jsp_editor'
-    })
+  data () {
+    return {
+      chartData: { ...baseData }
+    }
   }
 }
 </script>
