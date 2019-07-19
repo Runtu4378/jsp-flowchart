@@ -110,17 +110,19 @@ export default class JspViewer {
     isTarget: true
   }
 
-  /** 额外配置-start */
+  /// 额外配置-start
   dragSetting = {
     node: true
   }
-  /** 额外配置-end */
+  /// 额外配置-end
 
   // 节点类型表
   nodeMeta = nodeMeta
 
   /** 节点表 */
   nodes = new Map()
+  /** 连接表 */
+  connections = new Map()
 
   constructor (id, options, data) {
     this.id = id
@@ -133,6 +135,11 @@ export default class JspViewer {
     this.jsp.registerConnectionType('basic', this.basicType)
     this.jsp.bind('connection', (connInfo, originalEvent) => {
       this.initConnectLabel(connInfo.connection)
+      this.updateConnectionData(connInfo)
+    })
+    this.jsp.bind('connectionDetached', (connInfo, originalEvent) => {
+      this.detachConnection(connInfo.connection)
+      this.removeConnectionData(connInfo.connection)
     })
     if (data) {
       // 挂载数据
@@ -154,10 +161,12 @@ export default class JspViewer {
   /** 挂载节点和连接 */
   mountData (data) {
     const { nodes = [], edges = [] } = data
+    const realNodes = window.jsPlumbUtil.clone(nodes)
+    const realEdges = window.jsPlumbUtil.clone(edges)
     // 生成节点
-    this.mountNodes(nodes)
+    this.mountNodes(realNodes)
     // 生成连接
-    this.mountConnect(edges)
+    this.mountConnect(realEdges)
   }
 
   /** 挂载节点数据 */
@@ -234,8 +243,8 @@ export default class JspViewer {
         this.jsp.connect({
           uuids: [source.endpoint, target.endpoint],
           data: {
-            id: link.id,
-            label: link.label
+            uuid: link.id,
+            ...link.data
           }
         })
       }
@@ -252,8 +261,55 @@ export default class JspViewer {
     }
     connection.getOverlay('label').setLabel(label)
   }
+  /** 更新连接表 */
+  updateConnectionData (connInfo) {
+    const { connection, sourceId, sourceEndpoint, targetId, targetEndpoint } = connInfo
+    // console.log(connInfo)
+    const data = connection.getData()
+    let cDataSet = { data: {} }
+    let uuid
+    /** 该条数据的data是否来自外部data */
+    const ifFromData = !!data.uuid
+    if (ifFromData) {
+      // 已存在数据，使用现有uuid
+      uuid = data.uuid
+    } else {
+      // 新连接，初始化uuid
+      uuid = Math.uuid(16)
+    }
+    if (this.connections.has(uuid)) {
+      // 已存在数据，更新数据
+      cDataSet = { ...this.connections.get(uuid) }
+    } else {
+      // 未存在数据，初始化之
+      cDataSet.id = uuid
+      cDataSet.source = {
+        node: sourceId,
+        endpoint: sourceEndpoint._jsPlumb.uuid
+      }
+      cDataSet.target = {
+        node: targetId,
+        endpoint: targetEndpoint._jsPlumb.uuid
+      }
+    }
+    cDataSet.data.uuid = uuid
+    cDataSet.data.label = connection.getOverlay('label').getLabel()
+    // console.log('cDataSet: ', cDataSet)
+    this.connections.set(uuid, cDataSet)
+    // 手动同步节点的data
+    connection.setData(cDataSet.data)
+  }
+  /** 移除保存的连接表 */
+  removeConnectionData (connection) {
+    const data = connection.getData()
+    const uuid = data.uuid
+    console.log('delete id: ', uuid)
+    const res = this.connections.delete(uuid)
+    console.log('delete result: ', res)
+    console.log(this.connections)
+  }
 
-  // 事件
+  /// 事件-start
   /** 连接箭头点击事件 */
   handleArrowClick () {
     console.log('arrow click')
@@ -262,6 +318,14 @@ export default class JspViewer {
   handleLabelClick () {
     console.log('label click')
   }
+  handleDataUpdate () {
+    //
+  }
+  /** 删除链接处理函数 */
+  detachConnection (connection) {
+    console.log(connection)
+  }
+  /// 事件-end
 
   // jsp函数
   /** 设置位置 */

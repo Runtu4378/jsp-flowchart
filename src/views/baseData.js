@@ -32,7 +32,6 @@ export default {
   edges: [
     {
       id: 1,
-      label: 'connection 001',
       source: {
         node: 'start_001',
         endpoint: 'start_001_source_BottomCenter'
@@ -40,11 +39,13 @@ export default {
       target: {
         node: 'task_001',
         endpoint: 'task_001_target_TopCenter'
+      },
+      data: {
+        label: 'connection 001'
       }
     },
     {
       id: 2,
-      label: 'connection 002',
       source: {
         node: 'task_001',
         endpoint: 'task_001_source_BottomCenter'
@@ -52,11 +53,13 @@ export default {
       target: {
         node: 'judge_001',
         endpoint: 'judge_001_target_TopCenter'
+      },
+      data: {
+        label: 'connection 002'
       }
     },
     {
       id: 3,
-      label: 'Y',
       source: {
         node: 'judge_001',
         endpoint: 'judge_001_source_BottomCenter'
@@ -64,6 +67,9 @@ export default {
       target: {
         node: 'end_001',
         endpoint: 'end_001_target_TopCenter'
+      },
+      data: {
+        label: 'Y'
       }
     }
   ]
