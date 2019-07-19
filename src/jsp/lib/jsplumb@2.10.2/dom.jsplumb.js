@@ -1,5 +1,6 @@
-// /* eslint-disable */
+/* eslint-disable */
 /* eslint semi: "error" */
+/* global jsPlumb */
 
 /*
  * This file contains code used when jsPlumb is being rendered in a DOM.
@@ -902,7 +903,7 @@
       return eventArgs[0].drag.getDragElement();
     },
     getDragScope: function (el) {
-      return el._katavorioDrag && el._katavorioDrag.scopes.join(' ') || '';
+      return (el._katavorioDrag && el._katavorioDrag.scopes.join(' ')) || '';
     },
     getDropEvent: function (args) {
       return args[0].e;
