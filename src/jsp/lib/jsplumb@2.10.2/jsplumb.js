@@ -15,7 +15,6 @@
   'use strict';
 
   var root = this;
-
   var _ju = root.jsPlumbUtil;
 
   /**
@@ -25,9 +24,11 @@
     return '' + (new Date()).getTime();
   };
 
-  // helper method to update the hover style whenever it, or paintStyle, changes.
-  // we use paintStyle as the foundation and merge hoverPaintStyle over the
-  // top.
+  /**
+   * helper method to update the hover style whenever it, or paintStyle, changes.
+   * we use paintStyle as the foundation and merge hoverPaintStyle over the
+   * top.
+   */
   var _updateHoverStyle = function (component) {
     if (
       component._jsPlumb.paintStyle &&
@@ -703,15 +704,15 @@
       }
     }.bind(this);
 
-    //
-    // Draws an endpoint and its connections. this is the main entry point into drawing connections as well
-    // as endpoints, since jsPlumb is endpoint-centric under the hood.
-    //
-    // @param element element to draw (of type library specific element object)
-    // @param ui UI object from current library's event system. optional.
-    // @param timestamp timestamp for this paint cycle. used to speed things up a little by cutting down the amount of offset calculations we do.
-    // @param clearEdits defaults to false; indicates that mouse edits for connectors should be cleared
-    //
+    /**
+     * Draws an endpoint and its connections. this is the main entry point into drawing connections as well
+     * as endpoints, since jsPlumb is endpoint-centric under the hood.
+     *
+     * @param element element to draw (of type library specific element object)
+     * @param ui UI object from current library's event system. optional.
+     * @param timestamp timestamp for this paint cycle. used to speed things up a little by cutting down the amount of offset calculations we do.
+     * @param clearEdits defaults to false; indicates that mouse edits for connectors should be cleared
+     */
     var _draw = function (element, ui, timestamp, clearEdits) {
       if (!_suspendDrawing) {
         var id = _getId(element);
@@ -753,19 +754,18 @@
       }
     };
 
-    //
-    // gets an Endpoint by uuid.
-    //
+    /**
+     * gets an Endpoint by uuid.
+     */
     var _getEndpoint = function (uuid) {
       return endpointsByUUID[uuid];
     };
 
     /**
-      * inits a draggable if it's not already initialised.
-      * TODO: somehow abstract this to the adapter, because the concept of "draggable" has no
-      * place on the server.
-      */
-
+     * inits a draggable if it's not already initialised.
+     * TODO: somehow abstract this to the adapter, because the concept of "draggable" has no
+     * place on the server.
+    */
     var _scopeMatch = function (e1, e2) {
       var s1 = e1.scope.split(/\s/);
       var s2 = e2.scope.split(/\s/);
@@ -923,9 +923,7 @@
                 newEndpoint.setDeleteOnEmpty(true);
               }
 
-              //
               // copy in connector overlays if present on the source definition.
-              //
               if (idx === 0 && tep.def.connectorOverlays) {
                 _p.overlays = _p.overlays || [];
                 Array.prototype.push.apply(_p.overlays, tep.def.connectorOverlays);
@@ -973,9 +971,7 @@
       return con;
     };
 
-    //
     // adds the connection to the backing model, fires an event if necessary and then redraws
-    //
     var _finaliseConnection = _currentInstance.finaliseConnection = function (jpc, params, originalEvent, doInformAnchorManager) {
       params = params || {};
       // add to list of connections (by scope).
@@ -1018,10 +1014,10 @@
       }
     };
 
-    /*
-      factory method to prepare a new endpoint.  this should always be used instead of creating Endpoints
-      manually, since this method attaches event listeners and an id.
-      */
+    /**
+     * factory method to prepare a new endpoint.  this should always be used instead of creating Endpoints
+     * manually, since this method attaches event listeners and an id.
+     */
     var _newEndpoint = function (params, id) {
       var endpointFunc = _currentInstance.Defaults.EndpointType || jsPlumb.Endpoint;
       var _p = jsPlumb.extend({}, params);
@@ -1043,13 +1039,13 @@
       return ep;
     };
 
-    /*
-      * performs the given function operation on all the connections found
-      * for the given element id; this means we find all the endpoints for
-      * the given element, and then for each endpoint find the connectors
-      * connected to it. then we pass each connection in to the given
-      * function.
-      */
+    /**
+     * performs the given function operation on all the connections found
+     * for the given element id; this means we find all the endpoints for
+     * the given element, and then for each endpoint find the connectors
+     * connected to it. then we pass each connection in to the given
+     * function.
+     */
     var _operation = function (elId, func, endpointFunc) {
       var endpoints = endpointsByElement[elId];
       if (endpoints && endpoints.length) {
@@ -1077,16 +1073,16 @@
         }
       });
     };
-    /*
-      * private method to do the business of hiding/showing.
-      *
-      * @param el
-      *            either Id of the element in question or a library specific
-      *            object for the element.
-      * @param state
-      *            String specifying a value for the css 'display' property
-      *            ('block' or 'none').
-      */
+    /**
+     * private method to do the business of hiding/showing.
+     *
+     * @param el
+     *            either Id of the element in question or a library specific
+     *            object for the element.
+     * @param state
+     *            String specifying a value for the css 'display' property
+     *            ('block' or 'none').
+     */
     var _setVisible = function (el, state, alsoChangeEndpoints) {
       state = state === 'block';
       var endpointFunc = null;
@@ -1110,8 +1106,8 @@
       }, endpointFunc);
     };
     /**
-      * private method to do the business of toggling hiding/showing.
-      */
+     * private method to do the business of toggling hiding/showing.
+     */
     var _toggleVisible = function (elId, changeEndpoints) {
       var endpointFunc = null;
       if (changeEndpoints) {
@@ -1137,15 +1133,15 @@
     };
 
     /**
-      * gets an id for the given element, creating and setting one if
-      * necessary.  the id is of the form
-      *
-      *    jsPlumb_<instance index>_<index in instance>
-      *
-      * where "index in instance" is a monotonically increasing integer that starts at 0,
-      * for each instance.  this method is used not only to assign ids to elements that do not
-      * have them but also to connections and endpoints.
-      */
+     * gets an id for the given element, creating and setting one if
+     * necessary.  the id is of the form
+     *
+     *    jsPlumb_<instance index>_<index in instance>
+     *
+     * where "index in instance" is a monotonically increasing integer that starts at 0,
+     * for each instance.  this method is used not only to assign ids to elements that do not
+     * have them but also to connections and endpoints.
+     */
     var _getId = function (element, uuid, doNotCreateIfNotFound) {
       if (_ju.isString(element)) {
         return element;
@@ -1507,14 +1503,14 @@
     var CHECK_CONDITION = 'checkCondition';
 
     /**
-      * Deletes a Connection.
-      * @method deleteConnection
-      * @param connection Connection to delete
-      * @param {Object} [params] Optional delete parameters
-      * @param {Boolean} [params.doNotFireEvent=false] If true, a connection detached event will not be fired. Otherwise one will.
-      * @param {Boolean} [params.force=false] If true, the connection will be deleted even if a beforeDetach interceptor tries to stop the deletion.
-      * @returns {Boolean} True if the connection was deleted, false otherwise.
-      */
+     * Deletes a Connection.
+     * @method deleteConnection
+     * @param connection Connection to delete
+     * @param {Object} [params] Optional delete parameters
+     * @param {Boolean} [params.doNotFireEvent=false] If true, a connection detached event will not be fired. Otherwise one will.
+     * @param {Boolean} [params.force=false] If true, the connection will be deleted even if a beforeDetach interceptor tries to stop the deletion.
+     * @returns {Boolean} True if the connection was deleted, false otherwise.
+     */
     this.deleteConnection = function (connection, params) {
       if (connection != null) {
         params = params || {};
@@ -1543,13 +1539,13 @@
     };
 
     /**
-      * Remove all Connections from all elements, but leaves Endpoints in place ((unless a connection is set to auto delete its Endpoints).
-      * @method deleteEveryConnection
-      * @param {Object} [params] optional params object for the call
-      * @param {Boolean} [params.fireEvent=true] Whether or not to fire detach events
-      * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
-      * @returns {Number} The number of connections that were deleted.
-      */
+     * Remove all Connections from all elements, but leaves Endpoints in place ((unless a connection is set to auto delete its Endpoints).
+     * @method deleteEveryConnection
+     * @param {Object} [params] optional params object for the call
+     * @param {Boolean} [params.fireEvent=true] Whether or not to fire detach events
+     * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
+     * @returns {Number} The number of connections that were deleted.
+     */
     this.deleteEveryConnection = function (params) {
       params = params || {};
       var count = connections.length;
@@ -1563,14 +1559,14 @@
     };
 
     /**
-      * Removes all an element's Connections.
-      * @method deleteConnectionsForElement
-      * @param {Object} el Either the id of the element, or a selector for the element.
-      * @param {Object} [params] Optional parameters.
-      * @param {Boolean} [params.fireEvent=true] Whether or not to fire the detach event.
-      * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
-      * @return {jsPlumbInstance} The current jsPlumb instance.
-      */
+     * Removes all an element's Connections.
+     * @method deleteConnectionsForElement
+     * @param {Object} el Either the id of the element, or a selector for the element.
+     * @param {Object} [params] Optional parameters.
+     * @param {Boolean} [params.fireEvent=true] Whether or not to fire the detach event.
+     * @param {Boolean} [params.forceDetach=false] If true, this call will ignore any `beforeDetach` interceptors.
+     * @return {jsPlumbInstance} The current jsPlumb instance.
+     */
     this.deleteConnectionsForElement = function (el, params) {
       params = params || {};
       el = _currentInstance.getElement(el);
@@ -1895,11 +1891,11 @@
     // get an endpoint by uuid.
     this.getEndpoint = _getEndpoint;
     /**
-      * Gets the list of Endpoints for a given element.
-      * @method getEndpoints
-      * @param {String|Element|Selector} el The element to get endpoints for.
-      * @return {Endpoint[]} An array of Endpoints for the specified element.
-      */
+     * Gets the list of Endpoints for a given element.
+     * @method getEndpoints
+     * @param {String|Element|Selector} el The element to get endpoints for.
+     * @return {Endpoint[]} An array of Endpoints for the specified element.
+     */
     this.getEndpoints = function (el) {
       return endpointsByElement[_info(el).id] || [];
     };
@@ -1911,12 +1907,12 @@
     this.getDefaultConnectionType = function () {
       return jsPlumb.Connection;
     };
-    /*
-      * Gets an element's id, creating one if necessary. really only exposed
-      * for the lib-specific functionality to access; would be better to pass
-      * the current instance into the lib-specific code (even though this is
-      * a static call. i just don't want to expose it to the public API).
-      */
+    /**
+     * Gets an element's id, creating one if necessary. really only exposed
+     * for the lib-specific functionality to access; would be better to pass
+     * the current instance into the lib-specific code (even though this is
+     * a static call. i just don't want to expose it to the public API).
+     */
     this.getId = _getId;
     this.draw = _draw;
     this.info = _info;
@@ -1940,12 +1936,14 @@
     // exposed for other objects to use to get a unique id.
     this.idstamp = _idstamp;
 
-    // ensure that, if the current container exists, it is a DOM element and not a selector.
-    // if it does not exist and `candidate` is supplied, the offset parent of that element will be set as the Container.
-    // this is used to do a better default behaviour for the case that the user has not set a container:
-    // addEndpoint, makeSource, makeTarget and connect all call this method with the offsetParent of the
-    // element in question (for connect it is the source element). So if no container is set, it is inferred
-    // to be the offsetParent of the first element the user tries to connect.
+    /** 
+     * ensure that, if the current container exists, it is a DOM element and not a selector.
+     * if it does not exist and `candidate` is supplied, the offset parent of that element will be set as the Container.
+     * this is used to do a better default behaviour for the case that the user has not set a container:
+     * addEndpoint, makeSource, makeTarget and connect all call this method with the offsetParent of the
+     * element in question (for connect it is the source element). So if no container is set, it is inferred
+     * to be the offsetParent of the first element the user tries to connect.
+     */
     var _ensureContainer = function (candidate) {
       if (!_container && candidate) {
         var can = _currentInstance.getElement(candidate);
@@ -2075,13 +2073,13 @@
     this.log = log;
     this.jsPlumbUIComponent = jsPlumbUIComponent;
 
-    /*
-      * Creates an anchor with the given params.
-      *
-      *
-      * Returns: The newly created Anchor.
-      * Throws: an error if a named anchor was not found.
-      */
+    /**
+     * Creates an anchor with the given params.
+     *
+     *
+     * Returns: The newly created Anchor.
+     * Throws: an error if a named anchor was not found.
+     */
     this.makeAnchor = function () {
       var pp;
       var _a = function (t, p) {
@@ -3048,7 +3046,6 @@
 
     // sets the id of some element, changing whatever we need to to keep track.
     this.setId = function (el, newId, doNotSetAttribute) {
-      //
       var id;
 
       if (_ju.isString(el)) {
