@@ -114,6 +114,7 @@ export default class JspViewer {
   dragSetting = {
     node: true
   }
+  logEnabled = true
   /// 额外配置-end
 
   // 节点类型表
@@ -252,7 +253,7 @@ export default class JspViewer {
   }
   /** 初始化连接标签 */
   initConnectLabel (connection) {
-    console.log(connection)
+    // console.log(connection)
     // console.log(connection.getData())
     const data = connection.getData()
     let label = data.label
@@ -300,14 +301,13 @@ export default class JspViewer {
     connection.setData(cDataSet.data)
   }
   /** 移除保存的连接表 */
-  removeConnectionData (connection) {
+  removeConnectionData = function (connection) {
     const data = connection.getData()
     const uuid = data.uuid
-    console.log('delete id: ', uuid)
-    const res = this.connections.delete(uuid)
-    console.log('delete result: ', res)
-    console.log(this.connections)
-  }
+    // console.log('delete id: ', uuid)
+    this.connections.delete(uuid)
+    // console.log(this.connections)
+  }.bind(this)
 
   /// 事件-start
   /** 连接箭头点击事件 */
