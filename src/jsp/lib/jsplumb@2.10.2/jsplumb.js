@@ -1208,6 +1208,9 @@
 
     // ---- jsPlumbInstance public API ----
 
+    /**
+     * 增加端点
+     */
     this.addEndpoint = function (el, params, referenceParams) {
       referenceParams = referenceParams || {};
       var p = jsPlumb.extend({}, referenceParams);

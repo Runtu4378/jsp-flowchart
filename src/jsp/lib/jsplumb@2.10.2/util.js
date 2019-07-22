@@ -40,10 +40,12 @@
     return Object.prototype.toString.call(o) === '[object Function]';
   }
   jsPlumbUtil.isFunction = isFunction;
+
   function isNamedFunction (o) {
     return isFunction(o) && o.name != null && o.name.length > 0;
   }
   jsPlumbUtil.isNamedFunction = isNamedFunction;
+
   function isEmpty (o) {
     for (var i in o) {
       if (o.hasOwnProperty(i)) {
@@ -53,6 +55,7 @@
     return true;
   }
   jsPlumbUtil.isEmpty = isEmpty;
+
   function clone (a) {
     if (isString(a)) {
       return '' + a;
@@ -79,6 +82,7 @@
     }
   }
   jsPlumbUtil.clone = clone;
+
   function merge (a, b, collations, overwrites) {
     // first change the collations array - if present - into a lookup table, because its faster.
     var cMap = {};
@@ -130,6 +134,7 @@
     return c;
   }
   jsPlumbUtil.merge = merge;
+
   function replace (inObj, path, value) {
     if (inObj == null) {
       return;
@@ -172,10 +177,10 @@
     return inObj;
   }
   jsPlumbUtil.replace = replace;
-  //
-  // chain a list of functions, supplied by [ object, method name, args ], and return on the first
-  // one that returns the failValue. if none return the failValue, return the successValue.
-  //
+
+  /**
+   * chain a list of functions, supplied by [ object, method name, args ], and return on the first one that returns the failValue. if none return the failValue, return the successValue.
+   */
   function functionChain (successValue, failValue, fns) {
     for (var i = 0; i < fns.length; i++) {
       var o = fns[i][0][fns[i][1]].apply(fns[i][0], fns[i][2]);
@@ -240,6 +245,7 @@
     return _one(model);
   }
   jsPlumbUtil.populate = populate;
+
   function findWithFunction (a, f) {
     if (a) {
       for (var i = 0; i < a.length; i++) {
@@ -251,6 +257,7 @@
     return -1;
   }
   jsPlumbUtil.findWithFunction = findWithFunction;
+
   function removeWithFunction (a, f) {
     var idx = findWithFunction(a, f);
     if (idx > -1) {
@@ -259,6 +266,7 @@
     return idx !== -1;
   }
   jsPlumbUtil.removeWithFunction = removeWithFunction;
+
   function remove (l, v) {
     var idx = l.indexOf(v);
     if (idx > -1) {
@@ -267,12 +275,14 @@
     return idx !== -1;
   }
   jsPlumbUtil.remove = remove;
+
   function addWithFunction (list, item, hashFunction) {
     if (findWithFunction(list, hashFunction) === -1) {
       list.push(item);
     }
   }
   jsPlumbUtil.addWithFunction = addWithFunction;
+
   function addToList (map, key, value, insertAtStart) {
     var l = map[key];
     if (l == null) {
@@ -283,6 +293,7 @@
     return l;
   }
   jsPlumbUtil.addToList = addToList;
+
   function suggest (list, item, insertAtHead) {
     if (list.indexOf(item) === -1) {
       if (insertAtHead) {
@@ -295,10 +306,10 @@
     return false;
   }
   jsPlumbUtil.suggest = suggest;
-  //
-  // extends the given obj (which can be an array) with the given constructor function, prototype functions, and
-  // class members, any of which may be null.
-  //
+
+  /**
+   * extends the given obj (which can be an array) with the given constructor function, prototype functions, and class members, any of which may be null.
+   */
   function extend (child, parent, _protoFn) {
     var i;
     parent = isArray(parent) ? parent : [parent];
@@ -348,6 +359,7 @@
     return child;
   }
   jsPlumbUtil.extend = extend;
+
   function uuid () {
     return ('xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
       var r = Math.random() * 16 | 0;
@@ -356,6 +368,7 @@
     }));
   }
   jsPlumbUtil.uuid = uuid;
+
   function fastTrim (s) {
     if (s == null) {
       return null;
@@ -368,6 +381,7 @@
     return str.slice(0, i + 1);
   }
   jsPlumbUtil.fastTrim = fastTrim;
+
   function each (obj, fn) {
     obj = obj.length == null || typeof obj === 'string' ? [obj] : obj;
     for (var i = 0; i < obj.length; i++) {
@@ -375,6 +389,7 @@
     }
   }
   jsPlumbUtil.each = each;
+
   function map (obj, fn) {
     var o = [];
     for (var i = 0; i < obj.length; i++) {
@@ -383,6 +398,7 @@
     return o;
   }
   jsPlumbUtil.map = map;
+
   function mergeWithParents (type, map, parentAttribute) {
     parentAttribute = parentAttribute || 'parent';
     var _def = function (id) {
@@ -428,6 +444,7 @@
     }
   }
   jsPlumbUtil.mergeWithParents = mergeWithParents;
+
   jsPlumbUtil.logEnabled = true;
   function log () {
     var args = [];
@@ -443,19 +460,20 @@
     }
   }
   jsPlumbUtil.log = log;
+
   /**
-    * Wraps one function with another, creating a placeholder for the
-    * wrapped function if it was null. this is used to wrap the various
-    * drag/drop event functions - to allow jsPlumb to be notified of
-    * important lifecycle events without imposing itself on the user's
-    * drag/drop functionality.
-    * @method jsPlumbUtil.wrap
-    * @param {Function} wrappedFunction original function to wrap; may be null.
-    * @param {Function} newFunction function to wrap the original with.
-    * @param {Object} [returnOnThisValue] Optional. Indicates that the wrappedFunction should
-    * not be executed if the newFunction returns a value matching 'returnOnThisValue'.
-    * note that this is a simple comparison and only works for primitives right now.
-    */
+   * Wraps one function with another, creating a placeholder for the
+   * wrapped function if it was null. this is used to wrap the various
+   * drag/drop event functions - to allow jsPlumb to be notified of
+   * important lifecycle events without imposing itself on the user's
+   * drag/drop functionality.
+   * @method jsPlumbUtil.wrap
+   * @param {Function} wrappedFunction original function to wrap; may be null.
+   * @param {Function} newFunction function to wrap the original with.
+   * @param {Object} [returnOnThisValue] Optional. Indicates that the wrappedFunction should
+   * not be executed if the newFunction returns a value matching 'returnOnThisValue'.
+   * note that this is a simple comparison and only works for primitives right now.
+   */
   function wrap (wrappedFunction, newFunction, returnOnThisValue) {
     return function () {
       var r = null;
@@ -477,6 +495,7 @@
     };
   }
   jsPlumbUtil.wrap = wrap;
+
   var EventGenerator = /** @class */ (function () {
     function EventGenerator () {
       var _this = this;
