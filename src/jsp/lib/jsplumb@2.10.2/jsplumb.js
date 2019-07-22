@@ -1250,6 +1250,9 @@
       return results.length === 1 ? results[0] : results;
     };
 
+    /**
+     * 批量添加端点
+     */
     this.addEndpoints = function (el, endpoints, referenceParams) {
       var results = [];
       for (var i = 0, j = endpoints.length; i < j; i++) {

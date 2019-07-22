@@ -29,9 +29,9 @@ export default {
       y: 500
     }
   ],
-  edges: [
+  connections: [
     {
-      id: 1,
+      // id: 1,
       source: {
         node: 'start_001',
         endpoint: 'start_001_source_BottomCenter'
@@ -45,7 +45,7 @@ export default {
       }
     },
     {
-      id: 2,
+      // id: 2,
       source: {
         node: 'task_001',
         endpoint: 'task_001_source_BottomCenter'
@@ -59,7 +59,7 @@ export default {
       }
     },
     {
-      id: 3,
+      // id: 3,
       source: {
         node: 'judge_001',
         endpoint: 'judge_001_source_BottomCenter'

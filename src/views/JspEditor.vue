@@ -1,20 +1,22 @@
 <template>
   <div class="wrapper">
-    <FlowChart v-model="chartData" :edit="true" />
+    <FlowChartEditor v-model="chartData" />
+    <!-- <FlowChartEditor v-model="chartData2" /> -->
   </div>
 </template>
 
 <script>
-import FlowChart from '../components/FlowChart'
+import FlowChartEditor from '../components/FlowChartEditor'
 import baseData from './baseData'
 
 export default {
   components: {
-    FlowChart
+    FlowChartEditor
   },
   data () {
     return {
-      chartData: { ...baseData }
+      chartData: { ...baseData },
+      chartData2: { ...baseData }
     }
   }
 }

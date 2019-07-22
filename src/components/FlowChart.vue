@@ -44,7 +44,7 @@ export default {
   },
   methods: {
     initId () {
-      const id = `cm_flowchart_${idx}`
+      const id = `cm_flowchart_${idx++}`
       this.id = id
       this.$refs['canvas'].setAttribute('id', id)
     }

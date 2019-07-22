@@ -153,7 +153,7 @@ export default class JspViewer {
     await new Promise(resolve => {
       jsPlumb.ready((params) => {
         this.jsp = jsPlumb.getInstance(this.defaultOption)
-        // console.log(that)
+        // console.log('jsp init fini')
         resolve()
       })
     })
@@ -167,7 +167,7 @@ export default class JspViewer {
     // 生成节点
     this.mountNodes(realNodes)
     // 生成连接
-    this.mountConnect(realEdges)
+    this.mountConnections(realEdges)
   }
 
   /** 挂载节点数据 */
@@ -183,17 +183,8 @@ export default class JspViewer {
     if (!this.nodeMeta.has(type)) {
       throw new Error(`unknown type of node: ${type}`)
     } else {
-      let realNode = node
-      // 初始化id
-      if (!node.id) {
-        const uuid = Math.uuid(16)
-        realNode = { id: uuid, ...node }
-        this.nodes.set(uuid, realNode)
-      } else {
-        this.nodes.set(node.id, node)
-      }
       const nodeDetail = this.nodeMeta.get(type)
-      const renderTxt = nodeDetail.render(realNode)
+      const renderTxt = nodeDetail.render(node)
       const container = this.getDom(this.id)
       // 挂载实际dom
       container.append(renderTxt)
@@ -202,10 +193,10 @@ export default class JspViewer {
         this.dragSetting.node &&
         nodeDetail.draggable
       ) {
-        this.setDraggable(realNode.id)
+        this.setDraggable(node.id)
       }
       // 设置锚点
-      this.setEndPoint(realNode)
+      this.setEndPoint(node)
     }
   }
   /** 设置节点的锚点 */
@@ -233,23 +224,20 @@ export default class JspViewer {
   }
 
   /** 生成连接 */
-  mountConnect (list) {
-    for (let i = 0; i < list.length; i += 1) {
-      const link = list[i]
-      const { source, target } = link
-      if (!this.nodes.has(source.node) || !this.nodes.has(target.node)) {
-        // 某个节点不存在
-        console.warn('some node did not exist')
-      } else {
-        this.jsp.connect({
-          uuids: [source.endpoint, target.endpoint],
-          data: {
-            uuid: link.id,
-            ...link.data
-          }
-        })
-      }
+  mountConnections (connections) {
+    for (let i = 0; i < connections.length; i += 1) {
+      this.mountConnection(connections[i])
     }
+  }
+  mountConnection (connection) {
+    const { source, target } = connection
+    return this.jsp.connect({
+      uuids: [source.endpoint, target.endpoint],
+      data: {
+        uuid: connection.id,
+        ...connection.data
+      }
+    })
   }
   /** 初始化连接标签 */
   initConnectLabel (connection) {
