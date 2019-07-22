@@ -101,14 +101,13 @@ export default class Editor {
       drop: function (event, ui) {
         // debugger
         const type = ui.draggable[0].attributes['node-type'].nodeValue
-        console.log(type)
-        const left = ui.position.left
-        const top = ui.position.top
-        that.viewer.mountNode({
+        // console.log(type)
+        const node = {
           type,
-          x: left,
-          y: top
-        })
+          x: ui.position.left,
+          y: ui.position.top
+        }
+        that.mountNode(node)
       }
     })
   }
@@ -140,6 +139,7 @@ export default class Editor {
       this.nodes.set(node.id, node)
     }
     this.viewer.mountNode(node)
+    // console.log(this)
   }
   /** 更新位置信息（数据） */
   updateNodePosition (uuid, x, y) {
