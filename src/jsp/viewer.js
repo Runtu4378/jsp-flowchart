@@ -158,13 +158,13 @@ export default class JspViewer {
 
   /** 挂载节点和连接 */
   mountData (data) {
-    const { nodes = [], edges = [] } = data
+    const { nodes = [], connections = [] } = data
     const realNodes = window.jsPlumbUtil.clone(nodes)
-    const realEdges = window.jsPlumbUtil.clone(edges)
+    const realConnections = window.jsPlumbUtil.clone(connections)
     // 生成节点
     this.mountNodes(realNodes)
     // 生成连接
-    this.mountConnections(realEdges)
+    this.mountConnections(realConnections)
   }
 
   /** 挂载节点数据 */

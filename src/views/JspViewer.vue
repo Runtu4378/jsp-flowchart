@@ -3,7 +3,6 @@
     <div class="editor">
       <FlowChart
         v-model="chartData"
-        :edit="edit"
       />
     </div>
     <div class="btn-area">
