@@ -31,11 +31,20 @@ export default class Editor {
     this.initEdit()
     // console.log('const fini')
     this.updateData(value)
+    // 挂载事件队列
+    window.jsPlumbUtil.EventGenerator.apply(this)
   }
 
   /** 初始化viewer实例 */
   initInstance (id) {
-    this.viewer = new Viewer(id, {}, {})
+    this.viewer = new Viewer(id, {
+      defaultOption: {
+        DragOptions: {
+          drag: () => this.handleDragIng(),
+          stop: (event) => this.handleDragStop(event)
+        }
+      }
+    })
     this.jsp = this.viewer.jsp
     // console.log('init finish')
     // 挂载viewer实例的节点更新事件
@@ -132,6 +141,16 @@ export default class Editor {
     }
     this.viewer.mountNode(node)
   }
+  /** 更新位置信息（数据） */
+  updateNodePosition (uuid, x, y) {
+    if (this.nodes.has(uuid)) {
+      const node = this.nodes.get(uuid)
+      node.x = x
+      node.y = y
+      this.nodes.set(uuid, node)
+    }
+    // console.log(this)
+  }
 
   /** 挂载连接 */
   mountConnections (connections) {
@@ -178,7 +197,7 @@ export default class Editor {
     this.connections.set(uuid, cDataSet)
     // 手动同步节点的data
     connection.setData(cDataSet.data)
-    console.log(this)
+    // console.log(this)
   }
   /** 移除保存的连接表 */
   removeConnectionData (connection) {
@@ -187,6 +206,20 @@ export default class Editor {
     // console.log('delete id: ', uuid)
     this.connections.delete(uuid)
     // console.log(this.connections)
-    console.log(this)
+    // console.log(this)
   }
+
+  /// 事件处理-start
+  handleDragIng () {
+    console.log('....dragIng....')
+    //
+  }
+  handleDragStop (event, ui) {
+    console.log('....dragStop....')
+    const { el, finalPos } = event
+    const id = el.id
+    const [x, y] = finalPos
+    this.updateNodePosition(id, x, y)
+  }
+  /// 事件处理-end
 }

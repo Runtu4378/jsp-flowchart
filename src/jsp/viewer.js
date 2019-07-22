@@ -17,7 +17,8 @@ export default class JspViewer {
     // default drag options
     DragOptions: {
       cursor: 'pointer',
-      zIndex: 2000
+      zIndex: 2000,
+      containment: 'parent'
     },
     // the overlays to decorate each connection with.  note that the label overlay uses a function to generate the label text; in this
     // case it returns the 'labelText' member that we set on each connection in the 'init' method below.
@@ -122,13 +123,14 @@ export default class JspViewer {
 
   /** 节点表 */
   nodes = new Map()
-  /** 连接表 */
-  connections = new Map()
 
   constructor (id, options, data) {
     this.id = id
     if ('dragSetting' in options) {
       this.dragSetting = window.jsPlumbUtil.merge(this.dragSetting, options.dragSetting)
+    }
+    if ('defaultOption' in options) {
+      this.defaultOption = window.jsPlumbUtil.merge(this.defaultOption, options.defaultOption)
     }
     // 初始化实例
     this.initInstance(this.id)
@@ -136,9 +138,6 @@ export default class JspViewer {
     this.jsp.registerConnectionType('basic', this.basicType)
     this.jsp.bind('connection', (connInfo, originalEvent) => {
       this.initConnectLabel(connInfo.connection)
-    })
-    this.jsp.bind('connectionDetached', (connInfo, originalEvent) => {
-      this.detachConnection(connInfo.connection)
     })
     if (data) {
       // 挂载数据
@@ -228,7 +227,7 @@ export default class JspViewer {
     }
   }
   mountConnection (connection) {
-    console.log('connection: ', connection)
+    // console.log('connection: ', connection)
     const { source, target } = connection
     return this.jsp.connect({
       uuids: [source.endpoint, target.endpoint],
@@ -262,10 +261,6 @@ export default class JspViewer {
   handleDataUpdate () {
     //
   }
-  /** 删除链接处理函数 */
-  detachConnection (connection) {
-    console.log(connection)
-  }
   /// 事件-end
 
   // jsp函数
@@ -286,22 +281,7 @@ export default class JspViewer {
   /** 设置拖拽 */
   setDraggable (selector) {
     const that = this
-    const option = {
-      drag: function () {
-        console.log('....draging....')
-      },
-      stop: function (event, ui) {
-        console.log('....stop....')
-        const id = event.el.id
-        const x = event.pos[0]
-        const y = event.pos[1]
-        that.setPosition(id, x, y)
-        // var node = helper.container.getNode(id)
-        // TODO update node here
-      },
-      containment: 'parent'
-    }
-    that.jsp.draggable(that.getDom(selector), option)
+    that.jsp.draggable(that.getDom(selector))
   }
 
   // 工具函数
