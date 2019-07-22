@@ -28,10 +28,7 @@ export default class Editor {
     this.id = id
     // 生成画布实例
     this.initInstance(id)
-    // 挂载工具栏
-    this.mountToolbar()
-    // 挂载节点生成事件
-    this.initDragEvent()
+    this.initEdit()
     // console.log('const fini')
     this.updateData(value)
   }
@@ -41,6 +38,28 @@ export default class Editor {
     this.viewer = new Viewer(id, {}, {})
     this.jsp = this.viewer.jsp
     // console.log('init finish')
+    // 挂载viewer实例的节点更新事件
+    this.mountViewerEvent()
+  }
+
+  /** 挂载viewer事件 */
+  mountViewerEvent () {
+    // 绑定“连接建立”事件
+    this.jsp.bind('connection', (connInfo, originalEvent) => {
+      this.updateConnectionData(connInfo)
+    })
+    // 绑定“连接删除”事件
+    this.jsp.bind('connectionDetached', (connInfo, originalEvent) => {
+      this.removeConnectionData(connInfo.connection)
+    })
+  }
+
+  /** 初始化编辑栏和事件 */
+  initEdit () {
+    // 挂载工具栏
+    this.mountToolbar()
+    // 挂载节点生成事件
+    this.initDragEvent()
   }
 
   /** 挂载工具栏 */
@@ -125,10 +144,49 @@ export default class Editor {
     if (!connection.id) {
       connection.id = Math.uuid(16)
     }
-    const renderRes = this.viewer.mountConnection(connection)
-    if (renderRes) {
-      connection.cid = renderRes.id
-      this.connections.set(connection.id, connection)
+    this.viewer.mountConnection(connection)
+    // 映射关系的绑定在 connection 事件中处理
+  }
+  /** 被动更新连接数据 */
+  updateConnectionData (connInfo) {
+    const { connection, sourceId, sourceEndpoint, targetId, targetEndpoint } = connInfo
+    const data = connection.getData()
+    // console.log('connInfo: ', connInfo)
+    // console.log('data: ', data)
+    let cDataSet = { data: {} }
+    let uuid = data.uuid
+    if (this.connections.has(uuid)) {
+      // 已存在数据，更新数据
+      cDataSet = { ...this.connections.get(uuid) }
+    } else {
+      // 未存在数据，初始化之
+      uuid = Math.uuid(16)
+      cDataSet.cid = connection.id // 把自动生成的id设置到cid
+      cDataSet.id = uuid
+      cDataSet.source = {
+        node: sourceId,
+        endpoint: sourceEndpoint._jsPlumb.uuid
+      }
+      cDataSet.target = {
+        node: targetId,
+        endpoint: targetEndpoint._jsPlumb.uuid
+      }
+      cDataSet.data.uuid = uuid
     }
+    cDataSet.data.label = connection.getOverlay('label').getLabel()
+    // console.log('cDataSet: ', cDataSet)
+    this.connections.set(uuid, cDataSet)
+    // 手动同步节点的data
+    connection.setData(cDataSet.data)
+    console.log(this)
+  }
+  /** 移除保存的连接表 */
+  removeConnectionData (connection) {
+    const data = connection.getData()
+    const uuid = data.uuid
+    // console.log('delete id: ', uuid)
+    this.connections.delete(uuid)
+    // console.log(this.connections)
+    console.log(this)
   }
 }

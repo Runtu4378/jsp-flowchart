@@ -136,11 +136,9 @@ export default class JspViewer {
     this.jsp.registerConnectionType('basic', this.basicType)
     this.jsp.bind('connection', (connInfo, originalEvent) => {
       this.initConnectLabel(connInfo.connection)
-      this.updateConnectionData(connInfo)
     })
     this.jsp.bind('connectionDetached', (connInfo, originalEvent) => {
       this.detachConnection(connInfo.connection)
-      this.removeConnectionData(connInfo.connection)
     })
     if (data) {
       // 挂载数据
@@ -230,6 +228,7 @@ export default class JspViewer {
     }
   }
   mountConnection (connection) {
+    console.log('connection: ', connection)
     const { source, target } = connection
     return this.jsp.connect({
       uuids: [source.endpoint, target.endpoint],
@@ -250,52 +249,6 @@ export default class JspViewer {
     }
     connection.getOverlay('label').setLabel(label)
   }
-  /** 更新连接表 */
-  updateConnectionData (connInfo) {
-    const { connection, sourceId, sourceEndpoint, targetId, targetEndpoint } = connInfo
-    // console.log(connInfo)
-    const data = connection.getData()
-    let cDataSet = { data: {} }
-    let uuid
-    /** 该条数据的data是否来自外部data */
-    const ifFromData = !!data.uuid
-    if (ifFromData) {
-      // 已存在数据，使用现有uuid
-      uuid = data.uuid
-    } else {
-      // 新连接，初始化uuid
-      uuid = Math.uuid(16)
-    }
-    if (this.connections.has(uuid)) {
-      // 已存在数据，更新数据
-      cDataSet = { ...this.connections.get(uuid) }
-    } else {
-      // 未存在数据，初始化之
-      cDataSet.id = uuid
-      cDataSet.source = {
-        node: sourceId,
-        endpoint: sourceEndpoint._jsPlumb.uuid
-      }
-      cDataSet.target = {
-        node: targetId,
-        endpoint: targetEndpoint._jsPlumb.uuid
-      }
-    }
-    cDataSet.data.uuid = uuid
-    cDataSet.data.label = connection.getOverlay('label').getLabel()
-    // console.log('cDataSet: ', cDataSet)
-    this.connections.set(uuid, cDataSet)
-    // 手动同步节点的data
-    connection.setData(cDataSet.data)
-  }
-  /** 移除保存的连接表 */
-  removeConnectionData = function (connection) {
-    const data = connection.getData()
-    const uuid = data.uuid
-    // console.log('delete id: ', uuid)
-    this.connections.delete(uuid)
-    // console.log(this.connections)
-  }.bind(this)
 
   /// 事件-start
   /** 连接箭头点击事件 */
