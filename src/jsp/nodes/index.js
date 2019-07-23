@@ -1,6 +1,10 @@
+import './styles.scss'
+
 export default new Map([
   // 开始
   ['Start', {
+    icon: require('./icons/start.png'),
+    label: '开始',
     draggable: true,
     endpoint: [
       'TopCenter',
@@ -29,6 +33,8 @@ export default new Map([
   }],
   // 结束
   ['End', {
+    icon: require('./icons/end.png'),
+    label: '结束',
     draggable: true,
     endpoint: [
       'TopCenter',
@@ -59,6 +65,8 @@ export default new Map([
   }],
   // 任务
   ['Task', {
+    icon: require('./icons/task.png'),
+    label: '任务',
     draggable: true,
     endpoint: [
       'TopCenter',
@@ -87,6 +95,8 @@ export default new Map([
   }],
   // 判断
   ['Judge', {
+    icon: require('./icons/judge.png'),
+    label: '判断',
     draggable: true,
     endpoint: [
       'TopCenter',

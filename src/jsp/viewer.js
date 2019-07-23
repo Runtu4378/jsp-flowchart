@@ -4,7 +4,7 @@ import './lib/jquery/jquery.min.js'
 /* globals $ */
 import './lib/Math.uuid.js'
 
-import nodeMeta from './nodeMeta'
+import nodeMeta from './nodes'
 import './viewer.scss'
 
 export default class JspViewer {
@@ -18,7 +18,8 @@ export default class JspViewer {
     DragOptions: {
       cursor: 'pointer',
       zIndex: 2000,
-      containment: 'parent'
+      containment: 'parent',
+      grid: [10, 10] // 网格对齐
     },
     // the overlays to decorate each connection with.  note that the label overlay uses a function to generate the label text; in this
     // case it returns the 'labelText' member that we set on each connection in the 'init' method below.

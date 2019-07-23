@@ -1,21 +1,26 @@
-$bor_wid: 2px;
-
-.flowchart-object {
-  position: absolute;
-  // background: #fff;
-  .flowchart-inner {
-    width: 100%;
-    height: 100%;
-    position: relative;
+.cm-flowchart-editor {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  .toolbar {
+    width: 40px;
+    height: 90%;
+    position: absolute;
+    left: 10px;
+    top: 5%;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    .split {
+      height: 1px;
+      margin: 4px;
+      background: #ccc;
+    }
+    .node-item {
+      padding: 0 4px;
+      img {
+        display: block;
+        width: 100%;
+      }
+    }
   }
-  &.flowchart-start {
-  }
-  &.flowchart-task {
-  }
-}
-.jtk-endpoint.jtk-draggable.jtk-hover {
-  cursor: crosshair;
-}
-.aLabel {
-  background: #fff;
 }

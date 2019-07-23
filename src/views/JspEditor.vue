@@ -30,17 +30,5 @@ export default {
   position: relative;
   height: 100%;
   width: 100%;
-  .toolbar
-    width: 40px;
-    height: 90%;
-    position: absolute;
-    left: 10px;
-    top: 5%;
-    border: 1px solid #ccc;
-    border-radius: 3px;
-    .split
-      height: 1px;
-      margin: 4px;
-      background: #ccc;
 
 </style>

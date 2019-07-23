@@ -3,7 +3,7 @@ import './lib/jquery/jquery.min.js'
 import './lib/jquery/jquery-ui.min.js'
 
 import Viewer from './viewer.js'
-import nodeMeta from './nodeMeta'
+import nodeMeta from './nodes'
 
 export default class Editor {
   /** 挂载dom的id */
@@ -75,9 +75,9 @@ export default class Editor {
   mountToolbar () {
     const container = $(`#${this.id}`)
     const renderStr = []
-    for (let key of nodeMeta.keys()) {
+    for (let [key, value] of nodeMeta.entries()) {
       renderStr.push(`
-      <div class="node-item darg-data" node-type="${key}">${key}</div>
+      <div class="node-item darg-data" node-type="${key}" title="${value.label}"><img src="${value.icon}"/></div>
       `)
     }
     container.append(`
