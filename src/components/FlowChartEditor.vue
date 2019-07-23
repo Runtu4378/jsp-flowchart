@@ -1,6 +1,9 @@
 <template>
-  <div class="cm-flowchart-editor">
+  <div :class="classes">
     <div ref="canvas" class="cm-flowchart-canvas"></div>
+    <div class="cm-flowchart-edit-area">
+      <!-- <Spin v-if="!edit" fix /> -->
+    </div>
   </div>
 </template>
 
@@ -19,7 +22,17 @@ export default {
   },
   data () {
     return {
-      id: null
+      id: null,
+      edit: null
+    }
+  },
+  computed: {
+    classes () {
+      const arr = ['cm-flowchart']
+      if (this.edit) {
+        arr.push('cm-flowchart-edit')
+      }
+      return arr
     }
   },
   mounted () {
@@ -43,9 +56,10 @@ export default {
     showDatail (node, meta) {
       console.log(node)
       console.log(meta)
-      this.$Modal.info({
-        title: meta.label
-      })
+      // this.$Modal.info({
+      //   title: meta.label
+      // })
+      this.edit = node
     }
   }
 }
@@ -53,15 +67,32 @@ export default {
 
 <style lang="sass">
 $perfix: "cm-flowchart";
+$border-color: #ccc;
+$edit-width: 320px;
 
 .#{$perfix}
   position: relative;
   width: 100%;
   height: 100%;
+  &.#{$perfix}-edit
+    .#{$perfix}-canvas
+      right: $edit-width;
+    .#{$perfix}-edit-area
+      width: $edit-width;
 
   &-canvas
-    position: relative;
-    width: 100%;
+    position: absolute;
     height: 100%;
+    left: 0;
+    right: 0;
+    border: 1px solid $border-color;
+  &-edit-area
+    position: absolute;
+    height: 100%;
+    width: 0;
+    right: 0;
+    top: 0;
+    border: 1px solid $border-color;
+    border-left-width: 0;
 
 </style>

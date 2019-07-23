@@ -89,18 +89,18 @@ export default class Editor {
     const renderStr = []
     for (let [key, value] of nodeMeta.entries()) {
       renderStr.push(`
-      <div class="node-item darg-data" node-type="${key}" title="${value.label}"><img src="${value.icon}"/></div>
+      <div class="jsp-editor-node-item darg-data" node-type="${key}" title="${value.label}"><img src="${value.icon}"/></div>
       `)
     }
     container.append(`
-    <div class="toolbar">${renderStr.join('<div class="split"></div>')}</div>
+    <div class="jsp-editor-toolbar">${renderStr.join('<div class="split"></div>')}</div>
     `)
   }
 
   /** 挂载节点生成事件 */
   initDragEvent () {
     const that = this
-    $('.node-item.darg-data').draggable({
+    $('.jsp-editor-node-item.darg-data').draggable({
       revert: 'invalid',
       helper: 'clone',
       cursor: 'move',

@@ -1,9 +1,6 @@
 <template>
   <div class="wrapper">
-    <div class="edit-area">
-      <FlowChartEditor v-model="chartData" />
-    </div>
-    <!-- <FlowChartEditor v-model="chartData2" /> -->
+    <FlowChartEditor v-model="chartData" />
   </div>
 </template>
 
@@ -17,8 +14,7 @@ export default {
   },
   data () {
     return {
-      chartData: { ...baseData },
-      chartData2: { ...baseData }
+      chartData: { ...baseData }
     }
   }
 }
@@ -28,12 +24,5 @@ export default {
 .wrapper
   position: relative;
   height: 600px;
-
-.edit-area
-  position: absolute;
-  height: 100%;
-  left: 0;
-  right: 100px;
-  border: 1px solid #ccc;
 
 </style>
