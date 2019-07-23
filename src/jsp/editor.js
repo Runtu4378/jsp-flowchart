@@ -153,6 +153,30 @@ export default class Editor {
     this.viewer.mountNode(node)
     // console.log(this)
   }
+  /** 删除节点 */
+  deleteNode (nodeId) {
+    const deleteRes = this.nodes.delete(nodeId)
+    if (!deleteRes) {
+      console.warn(`delete node [${nodeId}] failed`)
+    } else {
+      // 删除相关的连接
+      const idArr = []
+      for (let [key, value] of this.connections.entries()) {
+        if (
+          value.source.node === nodeId ||
+          value.target.node === nodeId
+        ) {
+          idArr.push(key)
+        }
+      }
+      idArr.forEach((id) => {
+        this.connections.delete(id)
+      })
+    }
+    this.jsp.remove(nodeId)
+    console.log(this)
+    // TODO 触发数据更新事件
+  }
   /** 更新位置信息（数据） */
   updateNodePosition (uuid, x, y) {
     if (this.nodes.has(uuid)) {

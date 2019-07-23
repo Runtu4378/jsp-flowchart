@@ -3,11 +3,21 @@
     <div ref="canvas" class="cm-flowchart-canvas"></div>
     <div class="cm-flowchart-edit-area">
       <!-- <Spin v-if="!edit" fix /> -->
+      <Form ref="edit-form" class="form">
+        <FormItem label="标题">
+          <Input type="text" v-model="formData.label" placeholder="节点标题" />
+        </FormItem>
+        <FormItem class="btn-area">
+          <Button type="primary" @click="handleSaveTitle">保存</Button>
+          <Button type="error" @click="deleteNode">删除</Button>
+        </FormItem>
+      </Form>
     </div>
   </div>
 </template>
 
 <script>
+import { cloneDeep } from 'lodash'
 import Editor from '../jsp/editor.js'
 
 let idx = 0
@@ -23,7 +33,10 @@ export default {
   data () {
     return {
       id: null,
-      edit: null
+      edit: null,
+      formData: {
+        label: ''
+      }
     }
   },
   computed: {
@@ -60,6 +73,19 @@ export default {
       //   title: meta.label
       // })
       this.edit = node
+      this.formData = {
+        label: node.text
+      }
+    },
+    handleSaveTitle () {
+      const nowNode = cloneDeep(this.edit)
+      nowNode.text = this.formData.label
+      this.editor.viewer.updateNode(nowNode)
+      this.edit = null
+    },
+    deleteNode () {
+      this.editor.deleteNode(this.edit.id, true)
+      this.edit = null
     }
   }
 }
@@ -92,7 +118,16 @@ $edit-width: 320px;
     width: 0;
     right: 0;
     top: 0;
+    overflow: hidden;
     border: 1px solid $border-color;
     border-left-width: 0;
+    .form
+      padding: 10px 16px;
+
+      .btn-area
+        button
+          margin-right: 10px;
+          &:alst-child
+            margin-right: 0;
 
 </style>

@@ -167,6 +167,11 @@ export default class JspViewer {
     // 生成连接
     this.mountConnections(realConnections)
   }
+  // 重新渲染
+  rerender (data) {
+    jsPlumb.empty()
+    this.mountData(data)
+  }
 
   /** 挂载节点数据 */
   mountNodes (nodes) {
@@ -195,6 +200,18 @@ export default class JspViewer {
       }
       // 设置锚点
       this.setEndPoint(node)
+    }
+  }
+  /** 更新节点内容 */
+  updateNode (node) {
+    const nowContainer = this.getDom(node.id)
+    if (!nowContainer) {
+      // 未被挂载，执行挂载
+      this.mountNode(node)
+    } else {
+      const nodeDetail = this.nodeMeta.get(node.type)
+      const renderTxt = nodeDetail.render(node)
+      nowContainer.replaceWith(renderTxt)
     }
   }
   /** 设置节点的锚点 */
