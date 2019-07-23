@@ -1,6 +1,8 @@
 <template>
   <div class="wrapper">
-    <FlowChartEditor v-model="chartData" />
+    <div class="edit-area">
+      <FlowChartEditor v-model="chartData" />
+    </div>
     <!-- <FlowChartEditor v-model="chartData2" /> -->
   </div>
 </template>
@@ -24,11 +26,14 @@ export default {
 
 <style lang="sass">
 .wrapper
+  position: relative;
   height: 600px;
 
-.cm-flowchart-editor
-  position: relative;
+.edit-area
+  position: absolute;
   height: 100%;
-  width: 100%;
+  left: 0;
+  right: 100px;
+  border: 1px solid #ccc;
 
 </style>

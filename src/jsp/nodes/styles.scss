@@ -3,14 +3,11 @@ $bor_wid: 2px;
 .flowchart-object {
   position: absolute;
   // background: #fff;
+  cursor: pointer;
   .flowchart-inner {
     width: 100%;
     height: 100%;
     position: relative;
-  }
-  &.flowchart-start {
-  }
-  &.flowchart-task {
   }
 }
 .jtk-endpoint.jtk-draggable.jtk-hover {

@@ -61,6 +61,18 @@ export default class Editor {
     this.jsp.bind('connectionDetached', (connInfo, originalEvent) => {
       this.removeConnectionData(connInfo.connection)
     })
+    $(`#${this.id}`).on('click', '.flowchart-object', (event) => {
+      // console.log(event)
+      const target = event.currentTarget
+      // console.log(target)
+      if (!target) {
+        console.warn('can\' locate node')
+        return
+      }
+      const node = this.nodes.get(target.id)
+      const nodeMeta = this.nodeMeta.get(node.type)
+      this.fire('nodeClick', node, nodeMeta)
+    })
   }
 
   /** 初始化编辑栏和事件 */
@@ -222,4 +234,10 @@ export default class Editor {
     this.updateNodePosition(id, x, y)
   }
   /// 事件处理-end
+
+  // 工具函数
+  /* 获取对象dom节点 */
+  getDom (id) {
+    return $(`#${id}`)
+  }
 }
