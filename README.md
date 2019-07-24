@@ -29,3 +29,13 @@ npm run lint
 
 ### Customize configuration
 See [Configuration Reference](https://cli.vuejs.org/config/).
+
+## 相关文档
+
+https://github.com/wangduanduan/jsplumb-chinese-tutorial
+
+https://docs.jsplumbtoolkit.com/toolkit/current/
+
+https://docs.jsplumbtoolkit.com/toolkit/current/articles/demo-flowchart-builder.html
+
+https://github.com/oOKevinOo/JsplumbDemo
