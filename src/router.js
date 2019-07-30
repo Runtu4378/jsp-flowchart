@@ -33,6 +33,11 @@ export default new Router({
       path: '/jojViewer',
       name: 'jojViewer',
       component: () => import(/* webpackChunkName: "jojViewer" */'./views/JojViewer.vue')
+    },
+    {
+      path: '/joj',
+      name: 'joj',
+      component: () => import(/* webpackChunkName: "jojViewer" */'./views/Joj.vue')
     }
   ]
 })

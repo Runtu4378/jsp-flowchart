@@ -7,7 +7,7 @@
 
 <script>
 import * as joint from 'jointjs'
-import * as g from 'jointjs/dist/geometry.js'
+// import * as g from 'jointjs/dist/geometry.js'
 import 'jointjs/dist/joint.css'
 
 export default {
@@ -193,7 +193,7 @@ export default {
         line: {
           stroke: 'gray',
           strokeWidth: 4,
-          strokeDasharray: '4 2',
+          strokeDasharray: '4 2'
           // sourceMarker: {
           //   'type': 'image',
           //   'xlink:href': 'http://cdn3.iconfinder.com/data/icons/49handdrawing/24x24/left.png',

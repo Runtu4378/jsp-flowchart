@@ -4,7 +4,8 @@
       <router-link to="/">Home</router-link> |
       <router-link to="/jspViewer">viewer</router-link> |
       <router-link to="/jspEditor">editor</router-link> |
-      <router-link to="/jojViewer">jojViewer</router-link>
+      <router-link to="/jojViewer">jojViewer</router-link> |
+      <router-link to="/joj">joj</router-link>
     </div>
     <router-view/>
   </div>
